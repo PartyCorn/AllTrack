@@ -6,6 +6,7 @@ import {
   Req,
   Put,
   Body,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,17 +15,22 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiBody,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard';
 import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
+import { NotificationEventsService } from '../notification-events.service';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   /**
    * Получение профиля текущего пользователя

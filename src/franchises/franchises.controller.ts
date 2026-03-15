@@ -8,6 +8,8 @@ import {
   Body,
   Req,
   UseGuards,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -16,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard'
 import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard'
@@ -32,9 +35,28 @@ export class FranchisesController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Get all franchises for a user' })
   @ApiParam({ name: 'userId', example: 1 })
-  @ApiResponse({ status: 200, type: [FranchiseDto] })
-  getUserFranchises(@Param('userId') userId: number) {
-    return this.franchisesService.getUserFranchises(Number(userId))
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiResponse({ status: 200, type: Object })
+  getUserFranchises(
+    @Param('userId') userId: number,
+    @Query('page') page: string,
+    @Query('limit') limit: string
+  ) {
+    const options = {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    };
+    return this.franchisesService.getUserFranchises(Number(userId), options);
+  }
+
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get franchise by ID with titles' })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiResponse({ status: 200, type: Object })
+  getFranchiseById(@Param('id', ParseIntPipe) id: number) {
+    return this.franchisesService.getFranchiseById(id)
   }
 
   @Post()

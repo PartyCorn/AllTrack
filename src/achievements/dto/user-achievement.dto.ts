@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AchievementDto {
-  @ApiProperty({ description: 'ID достижения', example: 1 })
+export class UserAchievementDto {
+  @ApiProperty({ description: 'ID юзер-достижения', example: 1 })
   id: number;
 
-  @ApiProperty({ description: 'Код достижения', example: 'FIRST_TITLE' })
-  code: string;
+  @ApiProperty({ description: 'ID достижения', example: 1 })
+  achievementId: number;
 
   @ApiProperty({ description: 'Название достижения', example: 'First Title Added' })
   title: string;
@@ -19,9 +19,6 @@ export class AchievementDto {
   @ApiProperty({ description: 'XP за достижение', example: 10 })
   xpReward: number;
 
-  @ApiProperty({ description: 'Дата создания' })
-  createdAt: Date;
-
-  @ApiProperty({ description: 'Дата последнего обновления' })
-  updatedAt: Date;
+  @ApiProperty({ description: 'Дата открытия достижения', example: 1678000000000 })
+  unlockedAt: number;
 }

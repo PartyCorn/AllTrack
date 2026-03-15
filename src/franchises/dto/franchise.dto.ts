@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { TitleDto } from 'src/titles/dto/title.dto'
 
 export class FranchiseDto {
   @ApiProperty({ example: 1 })
@@ -23,6 +22,9 @@ export class FranchiseDto {
   @ApiProperty({ example: 60 })
   progressPercent: number
 
-  @ApiProperty({ type: [TitleDto] })
-  titles: TitleDto[]
+  @ApiProperty({ description: 'Statistics', type: Object })
+  stats: {
+    titlesCount: { [key: string]: number };
+    statusCount: { [key: string]: number };
+  };
 }

@@ -3,32 +3,79 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateUpdateTitleDto } from './dto/create-update-title.dto'
 import { GamificationService } from '../gamification/gamification.service'
+import { AchievementsService } from '../achievements/achievements.service'
+import { createPaginationOptions, createPaginatedResult, PaginationOptions } from '../common/pagination'
 
 @Injectable()
 export class TitlesService {
   constructor(
     private prisma: PrismaService,
     private gamificationService: GamificationService,
+    private achievementsService: AchievementsService,
+    private configService: ConfigService,
   ) {}
 
-  async getUserTitles(userId: number) {
-    const titles = await this.prisma.userTitle.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        include: { franchise: true }
-    })
+  async getUserTitles(userId: number, options: PaginationOptions = {}, type?: string, excludeFranchiseTitles: boolean = false) {
+    const { skip, take, page, limit } = createPaginationOptions(options);
 
-    return titles.map((title) => ({
+    if (type) {
+      // Return specific type with pagination
+      const where: any = { userId, type: type as any };
+      if (excludeFranchiseTitles) {
+        where.franchiseId = null;
+      }
+      const [titles, total] = await Promise.all([
+        this.prisma.userTitle.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: { franchise: true },
+          skip,
+          take,
+        }),
+        this.prisma.userTitle.count({ where }),
+      ]);
+
+      const items = titles.map((title) => ({
         ...title,
         progressPercent:
-        title.totalUnits && title.totalUnits > 0
+          title.totalUnits && title.totalUnits > 0
             ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
             : 0,
-    }))
+      }));
+
+      return createPaginatedResult(items, total, page, limit);
+    } else {
+      // Return all titles with pagination
+      const where: any = { userId };
+      if (excludeFranchiseTitles) {
+        where.franchiseId = null;
+      }
+      const [titles, total] = await Promise.all([
+        this.prisma.userTitle.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: { franchise: true },
+          skip,
+          take,
+        }),
+        this.prisma.userTitle.count({ where }),
+      ]);
+
+      const items = titles.map((title) => ({
+        ...title,
+        progressPercent:
+          title.totalUnits && title.totalUnits > 0
+            ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
+            : 0,
+      }));
+
+      return createPaginatedResult(items, total, page, limit);
     }
+  }
 
   private validateTitleData(
     totalUnits?: number,
@@ -67,6 +114,17 @@ export class TitlesService {
       dto.note,
     )
 
+    // Validate franchise title limit
+    if (dto.franchiseId) {
+      const franchiseTitlesCount = await this.prisma.userTitle.count({
+        where: { franchiseId: dto.franchiseId },
+      });
+      const maxTitles = this.configService.get<number>('franchises.maxTitles', 100);
+      if (franchiseTitlesCount >= maxTitles) {
+        throw new BadRequestException(`Franchise cannot have more than ${maxTitles} titles`);
+      }
+    }
+
     let status = dto.status ?? 'PLANNED'
 
     // авто COMPLETED если прогресс == максимум
@@ -87,12 +145,15 @@ export class TitlesService {
       },
     })
 
-    await this.gamificationService.addXp(userId, 10)
+    // await this.gamificationService.addXp(userId, 10)
 
     // если создали сразу завершённым
-    if (status === 'COMPLETED') {
-      await this.gamificationService.addXp(userId, 25)
-    }
+    // if (status === 'COMPLETED') {
+    //   await this.gamificationService.addXp(userId, 25)
+    // }
+
+    // Check for achievements
+    await this.achievementsService.checkAndAwardAchievements(userId);
 
     return title
   }
@@ -137,12 +198,15 @@ export class TitlesService {
     })
 
     // XP если впервые завершили
-    if (
-      status === 'COMPLETED' &&
-      existing.status !== 'COMPLETED'
-    ) {
-      await this.gamificationService.addXp(userId, 25)
-    }
+    // if (
+    //   status === 'COMPLETED' &&
+    //   existing.status !== 'COMPLETED'
+    // ) {
+    //   await this.gamificationService.addXp(userId, 25)
+    // }
+
+    // Check for achievements
+    await this.achievementsService.checkAndAwardAchievements(userId);
 
     return updated
   }
@@ -156,7 +220,7 @@ export class TitlesService {
       throw new NotFoundException('Title not found')
     }
 
-    await this.gamificationService.addXp(userId, -10)
+    // await this.gamificationService.addXp(userId, -10)
 
     return this.prisma.userTitle.delete({
       where: { id: titleId },

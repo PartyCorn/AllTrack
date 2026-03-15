@@ -3,12 +3,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateUpdateFranchiseDto } from './dto/create-update-franchise.dto'
+import { createPaginationOptions, createPaginatedResult, PaginationOptions } from '../common/pagination'
 
 @Injectable()
 export class FranchisesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {}
 
   private calculateTitleProgress(current?: number | null, total?: number | null): number {
     if (!total || total <= 0) return 0
@@ -17,33 +22,30 @@ export class FranchisesService {
     return Math.min(100, Math.round((current / total) * 100))
   }
 
-  async getUserFranchises(userId: number) {
-    const franchises = await this.prisma.franchise.findMany({
-      where: { userId },
-      include: {
-        titles: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+  async getUserFranchises(userId: number, options: PaginationOptions = {}) {
+    const { skip, take, page, limit } = createPaginationOptions(options);
 
-    return franchises.map((franchise) => {
+    const [franchises, total] = await Promise.all([
+      this.prisma.franchise.findMany({
+        where: { userId },
+        include: {
+          titles: true, // Still need for stats
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.franchise.count({ where: { userId } }),
+    ]);
+
+    const items = franchises.map((franchise) => {
       let totalUnitsSum = 0
       let currentUnitsSum = 0
 
-      const titlesWithProgress = franchise.titles.map((title) => {
-        const progress = this.calculateTitleProgress(
-          title.currentUnit,
-          title.totalUnits,
-        )
-
+      franchise.titles.forEach((title) => {
         if (title.totalUnits) {
           totalUnitsSum += title.totalUnits
           currentUnitsSum += title.currentUnit ?? 0
-        }
-
-        return {
-          ...title,
-          progressPercent: progress,
         }
       })
 
@@ -52,12 +54,90 @@ export class FranchisesService {
           ? Math.round((currentUnitsSum / totalUnitsSum) * 100)
           : 0
 
+      const titlesCount = franchise.titles.reduce((acc, title) => {
+        acc[title.type] = (acc[title.type] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+      const statusCount = franchise.titles.reduce((acc, title) => {
+        acc[title.status] = (acc[title.status] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
       return {
         ...franchise,
-        titles: titlesWithProgress,
+        titles: undefined, // Remove titles from response
         progressPercent: franchiseProgress,
+        stats: {
+          titlesCount,
+          statusCount,
+        },
+      };
+    });
+
+    return createPaginatedResult(items, total, page, limit);
+  }
+
+  async getFranchiseById(id: number) {
+    const franchise = await this.prisma.franchise.findUnique({
+      where: { id },
+      include: {
+        titles: true,
+      },
+    })
+
+    if (!franchise) throw new NotFoundException('Franchise not found')
+
+    let totalUnitsSum = 0
+    let currentUnitsSum = 0
+
+    const titlesWithProgress = franchise.titles.map((title) => {
+      const progress = this.calculateTitleProgress(
+        title.currentUnit,
+        title.totalUnits,
+      )
+
+      if (title.totalUnits) {
+        totalUnitsSum += title.totalUnits
+        currentUnitsSum += title.currentUnit ?? 0
+      }
+
+      return {
+        ...title,
+        progressPercent: progress,
       }
     })
+
+    const franchiseProgress =
+      totalUnitsSum > 0
+        ? Math.round((currentUnitsSum / totalUnitsSum) * 100)
+        : 0
+
+    const titlesGrouped = titlesWithProgress.reduce((acc, title) => {
+      if (!acc[title.type]) acc[title.type] = [];
+      acc[title.type].push(title);
+      return acc;
+    }, {} as { [key: string]: any[] });
+
+    const titlesCount = titlesWithProgress.reduce((acc, title) => {
+      acc[title.type] = (acc[title.type] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    const statusCount = titlesWithProgress.reduce((acc, title) => {
+      acc[title.status] = (acc[title.status] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    return {
+      ...franchise,
+      titles: titlesGrouped,
+      progressPercent: franchiseProgress,
+      stats: {
+        titlesCount,
+        statusCount,
+      },
+    }
   }
 
   async createFranchise(userId: number, dto: CreateUpdateFranchiseDto) {

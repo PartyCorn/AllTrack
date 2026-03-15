@@ -29,11 +29,14 @@ export class UserDto {
   @ApiProperty({ description: 'Account creation date' })
   createdAt: Date;
 
-  @ApiProperty({ description: 'Titles', type: [Object] })
-  titles: any[];
-
-  @ApiProperty({ description: 'Achievements', type: [Object] })
+  @ApiProperty({ description: 'Achievements (first 10)', type: [Object] })
   achievements: any[];
+
+  @ApiProperty({ description: 'Statistics', type: Object })
+  stats: {
+    titlesCount: { [key: string]: number };
+    statusCount: { [key: string]: number };
+  };
 
   @ApiProperty({ description: 'Is this your own profile', example: true })
   isMyProfile: boolean;

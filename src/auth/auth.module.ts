@@ -5,13 +5,16 @@ import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { JwtStrategy } from './jwt.strategy'
 import { PrismaModule } from '../prisma/prisma.module'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "super-secret-key",
+      secret: process.env.JWT_SECRET!,
       // signOptions: { expiresIn: undefined },
     }),
   ],

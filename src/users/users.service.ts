@@ -3,7 +3,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TitleDto } from '../titles/dto/title.dto';
-import { AchievementDto } from '../achievements/dto/achievement.dto';
+import { UserAchievementDto } from '../achievements/dto/user-achievement.dto';
 
 @Injectable()
 export class UsersService {
@@ -84,14 +84,26 @@ export class UsersService {
       updatedAt: t.updatedAt,
     }));
 
-    const achievements: AchievementDto[] = (user.achievements || []).map((ua) => ({
+    const achievements: UserAchievementDto[] = (user.achievements || []).map((ua) => ({
       id: ua.id,
       achievementId: ua.achievement.id,
       title: ua.achievement.title,
       description: ua.achievement.description,
+      icon: ua.achievement.icon,
       xpReward: ua.achievement.xpReward,
-      unlockedAt: ua.unlockedAt.getTime(),
-    }));
+      unlockedAt: ua.unlockedAt,
+    })).slice(0, 10); // Limit to first 10
+
+    // Calculate stats
+    const titlesCount = titles.reduce((acc, title) => {
+      acc[title.type] = (acc[title.type] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    const statusCount = titles.reduce((acc, title) => {
+      acc[title.status] = (acc[title.status] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
 
     return {
       id: user.id,
@@ -102,10 +114,55 @@ export class UsersService {
       level: user.level,
       xp: user.xp,
       isPrivate: user.isPrivate,
-      createdAt: user.createdAt.getTime(),
-      titles,
+      createdAt: user.createdAt,
       achievements,
+      stats: {
+        titlesCount,
+        statusCount,
+      },
       isMyProfile: requesterId === user.id,
     };
+  }
+
+  async exportUserData(nickname: string, format: string, requesterId?: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { nickname },
+      include: {
+        titles: {
+          include: { franchise: true },
+        },
+        achievements: {
+          include: { achievement: true },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (user.isPrivate && user.id !== requesterId) {
+      throw new ForbiddenException('Profile is private');
+    }
+
+    const data = {
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        bio: user.bio,
+        level: user.level,
+        xp: user.xp,
+        createdAt: user.createdAt,
+      },
+      titles: user.titles,
+      achievements: user.achievements,
+    };
+
+    if (format === 'csv') {
+      // Simple CSV for titles
+      const csv = 'id,type,title,status,rating\n' +
+        user.titles.map(t => `${t.id},${t.type},${t.title},${t.status},${t.rating || ''}`).join('\n');
+      return csv;
+    }
+
+    return data;
   }
 }

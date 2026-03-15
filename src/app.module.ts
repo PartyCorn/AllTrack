@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TitlesService } from './titles/titles.service';
 import { TitlesController } from './titles/titles.controller';
-import { AchievementsService } from './achievements/achievements.service';
-import { AchievementsController } from './achievements/achievements.controller';
+import { AchievementsModule } from './achievements/achievements.module';
 import { GamificationService } from './gamification/gamification.service';
 import { FranchisesService } from './franchises/franchises.service';
 import { FranchisesController } from './franchises/franchises.controller';
+import { CoversModule } from './covers/covers.module';
+import { NotificationCleanupService } from './notification-cleanup.service';
+import { NotificationEventsService } from './notification-events.service';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UsersModule],
-  controllers: [AppController, TitlesController, AchievementsController, FranchisesController],
-  providers: [AppService, TitlesService, AchievementsService, GamificationService, FranchisesService],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, AchievementsModule, CoversModule, NotificationsModule],
+  controllers: [TitlesController, FranchisesController],
+  providers: [TitlesService, GamificationService, FranchisesService, NotificationCleanupService, NotificationEventsService],
 })
 export class AppModule {}
