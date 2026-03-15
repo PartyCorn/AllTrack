@@ -38,13 +38,13 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current authenticated user profile' })
+  @ApiOperation({ summary: 'Получить профиль текущего аутентифицированного пользователя' })
   @ApiResponse({
     status: 200,
-    description: 'Returns current user profile',
+    description: 'Возвращает профиль текущего пользователя',
     type: UserDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
   getMe(@Req() req: any): Promise<UserDto> {
     return this.usersService.getById(req.user.userId);
   }
@@ -55,17 +55,17 @@ export class UsersController {
   @Put('me/edit')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Edit current user profile (nickname, bio, avatar, privacy)' })
+  @ApiOperation({ summary: 'Редактировать профиль текущего пользователя (никнейм, био, аватар, приватность)' })
   @ApiBody({
     type: UpdateUserDto,
-    description: 'Fields that can be updated',
+    description: 'Поля, которые можно обновить',
   })
   @ApiResponse({
     status: 200,
-    description: 'Updated user profile',
+    description: 'Обновленный профиль пользователя',
     type: UserDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
   updateMe(@Req() req: any, @Body() dto: UpdateUserDto): Promise<UserDto> {
     return this.usersService.updateUser(req.user.userId, dto);
   }
@@ -76,19 +76,19 @@ export class UsersController {
   @Get(':nickname')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get public user profile by nickname' })
+  @ApiOperation({ summary: 'Получить публичный профиль пользователя по никнейму' })
   @ApiParam({
     name: 'nickname',
-    description: 'Unique user nickname',
+    description: 'Уникальный никнейм пользователя',
     example: 'andreyy',
   })
   @ApiResponse({
     status: 200,
-    description: 'Returns public profile',
+    description: 'Возвращает публичный профиль',
     type: UserDto,
   })
-  @ApiResponse({ status: 403, description: 'Profile is private' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Профиль приватный' })
+  @ApiResponse({ status: 404, description: 'Пользователь не найден' })
   getPublicProfile(@Param('nickname') nickname: string, @Req() req: any): Promise<UserDto> {
     const requesterId = req?.user?.userId;
     return this.usersService.getPublicProfile(nickname, requesterId);

@@ -4,15 +4,15 @@ import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 
-@ApiTags('Auth')
+@ApiTags('Авторизация')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, description: 'User successfully registered' })
-  @ApiResponse({ status: 409, description: 'Email or nickname already exists' })
+  @ApiOperation({ summary: 'Регистрация нового пользователя' })
+  @ApiResponse({ status: 201, description: 'Пользователь успешно зарегистрирован' })
+  @ApiResponse({ status: 409, description: 'Email или никнейм уже существует' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(
       dto.email,
@@ -22,9 +22,9 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Login user and get JWT token' })
-  @ApiResponse({ status: 200, description: 'User successfully authenticated' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiOperation({ summary: 'Вход пользователя и получение JWT токена' })
+  @ApiResponse({ status: 200, description: 'Пользователь успешно аутентифицирован' })
+  @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password)
   }

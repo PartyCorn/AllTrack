@@ -25,19 +25,21 @@ import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard'
 import { FranchisesService } from './franchises.service'
 import { CreateUpdateFranchiseDto } from './dto/create-update-franchise.dto'
 import { FranchiseDto } from './dto/franchise.dto'
+import { PaginatedFranchisesResponseDto } from './dto/paginated-franchises-response.dto'
+import { FranchiseWithTitlesDto } from './dto/franchise-with-titles.dto'
 
-@ApiTags('Franchises')
+@ApiTags('Франшизы')
 @Controller('franchises')
 export class FranchisesController {
   constructor(private franchisesService: FranchisesService) {}
 
   @Get('/user/:userId')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Get all franchises for a user' })
-  @ApiParam({ name: 'userId', example: 1 })
-  @ApiQuery({ name: 'page', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiResponse({ status: 200, type: Object })
+  @ApiOperation({ summary: 'Получить все франшизы пользователя' })
+  @ApiParam({ name: 'userId', example: 1, description: 'ID пользователя' })
+  @ApiQuery({ name: 'page', type: Number, required: false, description: 'Номер страницы' })
+  @ApiQuery({ name: 'limit', type: Number, required: false, description: 'Количество элементов на странице' })
+  @ApiResponse({ status: 200, type: PaginatedFranchisesResponseDto, description: 'Список франшиз с пагинацией' })
   getUserFranchises(
     @Param('userId') userId: number,
     @Query('page') page: string,
@@ -52,9 +54,9 @@ export class FranchisesController {
 
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Get franchise by ID with titles' })
-  @ApiParam({ name: 'id', example: 1 })
-  @ApiResponse({ status: 200, type: Object })
+  @ApiOperation({ summary: 'Получить франшизу по ID с тайтлами' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiResponse({ status: 200, type: FranchiseWithTitlesDto, description: 'Франшиза с тайтлами' })
   getFranchiseById(@Param('id', ParseIntPipe) id: number) {
     return this.franchisesService.getFranchiseById(id)
   }
@@ -62,9 +64,9 @@ export class FranchisesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a franchise' })
-  @ApiBody({ type: CreateUpdateFranchiseDto })
-  @ApiResponse({ status: 201, type: FranchiseDto })
+  @ApiOperation({ summary: 'Создать франшизу' })
+  @ApiBody({ type: CreateUpdateFranchiseDto, description: 'Данные для создания франшизы' })
+  @ApiResponse({ status: 201, type: FranchiseDto, description: 'Созданная франшиза' })
   createFranchise(@Req() req: any, @Body() dto: CreateUpdateFranchiseDto) {
     return this.franchisesService.createFranchise(req.user.userId, dto)
   }
@@ -72,10 +74,10 @@ export class FranchisesController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a franchise' })
-  @ApiParam({ name: 'id', example: 1 })
-  @ApiBody({ type: CreateUpdateFranchiseDto })
-  @ApiResponse({ status: 200, type: FranchiseDto })
+  @ApiOperation({ summary: 'Обновить франшизу' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiBody({ type: CreateUpdateFranchiseDto, description: 'Данные для обновления франшизы' })
+  @ApiResponse({ status: 200, type: FranchiseDto, description: 'Обновленная франшиза' })
   updateFranchise(
     @Req() req: any,
     @Param('id') id: number,
@@ -91,9 +93,9 @@ export class FranchisesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a franchise' })
-  @ApiParam({ name: 'id', example: 1 })
-  @ApiResponse({ status: 200, description: 'Franchise deleted' })
+  @ApiOperation({ summary: 'Удалить франшизу' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiResponse({ status: 200, description: 'Франшиза удалена' })
   deleteFranchise(@Req() req: any, @Param('id') id: number) {
     return this.franchisesService.deleteFranchise(
       req.user.userId,
@@ -104,10 +106,10 @@ export class FranchisesController {
   @Post(':franchiseId/titles/:titleId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Attach title to franchise' })
-  @ApiParam({ name: 'franchiseId', example: 1 })
-  @ApiParam({ name: 'titleId', example: 5 })
-  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'Прикрепить тайтл к франшизе' })
+  @ApiParam({ name: 'franchiseId', example: 1, description: 'ID франшизы' })
+  @ApiParam({ name: 'titleId', example: 5, description: 'ID тайтла' })
+  @ApiResponse({ status: 200, description: 'Тайтл прикреплен' })
   attachTitle(
     @Req() req: any,
     @Param('franchiseId') franchiseId: number,
@@ -123,10 +125,10 @@ export class FranchisesController {
   @Delete(':franchiseId/titles/:titleId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Detach title from franchise' })
-  @ApiParam({ name: 'franchiseId', example: 1 })
-  @ApiParam({ name: 'titleId', example: 1 })
-  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'Открепить тайтл от франшизы' })
+  @ApiParam({ name: 'franchiseId', example: 1, description: 'ID франшизы' })
+  @ApiParam({ name: 'titleId', example: 1, description: 'ID тайтла' })
+  @ApiResponse({ status: 200, description: 'Тайтл откреплен' })
   detachTitle(
     @Req() req: any,
     @Param('franchiseId') franchiseId: number,

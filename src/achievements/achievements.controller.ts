@@ -3,8 +3,10 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth }
 import { AchievementsService } from './achievements.service';
 import { UsersService } from '../users/users.service';
 import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard';
+import { AchievementDto } from './dto/achievement.dto'
+import { UserAchievementDto } from './dto/user-achievement.dto'
 
-@ApiTags('Achievements')
+@ApiTags('Достижения')
 @Controller('achievements')
 export class AchievementsController {
   constructor(
@@ -14,10 +16,10 @@ export class AchievementsController {
 
   // User achievements
   @Get('users/:nickname')
-  @ApiOperation({ summary: 'Get all achievements of a user by nickname' })
-  @ApiParam({ name: 'nickname', description: 'User nickname', example: 'andreyy' })
-  @ApiResponse({ status: 200, description: 'Array of achievements' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiOperation({ summary: 'Получить все достижения пользователя по никнейму' })
+  @ApiParam({ name: 'nickname', description: 'Никнейм пользователя', example: 'andreyy' })
+  @ApiResponse({ status: 200, type: [UserAchievementDto], description: 'Массив достижений' })
+  @ApiResponse({ status: 404, description: 'Пользователь не найден' })
   async getUserAchievements(@Param('nickname') nickname: string) {
     const user = await this.usersService.getPublicProfile(nickname);
     return this.achievementsService.getUserAchievements(user.id);
@@ -27,9 +29,9 @@ export class AchievementsController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all achievements' })
-  @ApiQuery({ name: 'filter', enum: ['unlocked', 'locked', 'all'], required: false })
-  @ApiResponse({ status: 200, description: 'Array of achievements' })
+  @ApiOperation({ summary: 'Получить все достижения' })
+  @ApiQuery({ name: 'filter', enum: ['unlocked', 'locked', 'all'], required: false, description: 'Фильтр достижений: unlocked - разблокированные, locked - заблокированные, all - все' })
+  @ApiResponse({ status: 200, type: [AchievementDto], description: 'Массив достижений' })
   getAllAchievements(@Query('filter') filter: string, @Req() req: any) {
     const userId = req?.user?.userId;
     return this.achievementsService.getAllAchievements(userId, filter);
