@@ -40,4 +40,7 @@ export class UserDto {
 
   @ApiProperty({ description: 'Это ваш профиль', example: true })
   isMyProfile: boolean;
+
+  @ApiProperty({ description: 'Статус дружбы', enum: ['friends', 'not_friends', 'pending_outgoing', 'pending_incoming'], example: 'friends' })
+  friendStatus: 'friends' | 'not_friends' | 'pending_outgoing' | 'pending_incoming';
 }

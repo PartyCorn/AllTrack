@@ -24,7 +24,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
 import { NotificationEventsService } from '../notification-events.service';
 
-@ApiTags('Users')
+@ApiTags('Пользователи')
 @Controller('users')
 export class UsersController {
   constructor(
@@ -92,5 +92,18 @@ export class UsersController {
   getPublicProfile(@Param('nickname') nickname: string, @Req() req: any): Promise<UserDto> {
     const requesterId = req?.user?.userId;
     return this.usersService.getPublicProfile(nickname, requesterId);
+  }
+
+  /**
+   * Экспорт данных профиля
+   */
+  @Get('me/export')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Экспорт данных своего профиля' })
+  @ApiQuery({ name: 'format', enum: ['json', 'csv'], required: false, description: 'Формат экспорта' })
+  @ApiResponse({ status: 200, description: 'Экспортированные данные' })
+  exportProfile(@Req() req: any, @Query('format') format?: string) {
+    return this.usersService.exportUserData(req.user.userId, format || 'json', req.user.userId);
   }
 }

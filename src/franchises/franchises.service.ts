@@ -23,7 +23,17 @@ export class FranchisesService {
   }
 
   async getUserFranchises(userId: number, options: PaginationOptions = {}) {
-    const { skip, take, page, limit } = createPaginationOptions(options);
+    const { skip, take, page, limit, sortBy, sortOrder } = createPaginationOptions(options);
+
+    let orderBy: any = { createdAt: 'desc' };
+    if (sortBy) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      if (sortBy === 'name') {
+        orderBy = { name: order };
+      } else if (sortBy === 'createdAt') {
+        orderBy = { createdAt: order };
+      }
+    }
 
     const [franchises, total] = await Promise.all([
       this.prisma.franchise.findMany({
@@ -31,7 +41,7 @@ export class FranchisesService {
         include: {
           titles: true, // Still need for stats
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take,
       }),
@@ -118,6 +128,14 @@ export class FranchisesService {
       acc[title.type].push(title);
       return acc;
     }, {} as { [key: string]: any[] });
+
+    // Sort titles within each group
+    Object.keys(titlesGrouped).forEach(type => {
+      titlesGrouped[type].sort((a, b) => {
+        // Default sort by createdAt desc, can be extended
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    });
 
     const titlesCount = titlesWithProgress.reduce((acc, title) => {
       acc[title.type] = (acc[title.type] || 0) + 1;

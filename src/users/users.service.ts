@@ -19,6 +19,8 @@ export class UsersService {
         achievements: {
           include: { achievement: true },
         },
+        sentFriendRequests: true,
+        receivedFriendRequests: true
       },
     });
 
@@ -37,6 +39,8 @@ export class UsersService {
         achievements: {
           include: { achievement: true },
         },
+        sentFriendRequests: true,
+        receivedFriendRequests: true
       },
     });
 
@@ -60,6 +64,8 @@ export class UsersService {
         achievements: {
           include: { achievement: true },
         },
+        sentFriendRequests: true,
+        receivedFriendRequests: true,
       },
     });
 
@@ -105,6 +111,25 @@ export class UsersService {
       return acc;
     }, {} as { [key: string]: number });
 
+    // Calculate friend status
+    let friendStatus: 'friends' | 'not_friends' | 'pending_outgoing' | 'pending_incoming' = 'not_friends';
+    if (requesterId && requesterId !== user.id) {
+      // Check friendship status
+      const friendship = user.sentFriendRequests?.find((f: any) => f.addresseeId === requesterId) ||
+                        user.receivedFriendRequests?.find((f: any) => f.requesterId === requesterId);
+      if (friendship) {
+        if (friendship.status === 'ACCEPTED') {
+          friendStatus = 'friends';
+        } else if (friendship.status === 'PENDING') {
+          if (friendship.requesterId === requesterId) {
+            friendStatus = 'pending_outgoing';
+          } else {
+            friendStatus = 'pending_incoming';
+          }
+        }
+      }
+    }
+
     return {
       id: user.id,
       email: requesterId === user.id ? user.email : null,
@@ -121,12 +146,13 @@ export class UsersService {
         statusCount,
       },
       isMyProfile: requesterId === user.id,
+      friendStatus,
     };
   }
 
-  async exportUserData(nickname: string, format: string, requesterId?: number) {
+  async exportUserData(userId: number, format: string, requesterId?: number) {
     const user = await this.prisma.user.findUnique({
-      where: { nickname },
+      where: { id: userId },
       include: {
         titles: {
           include: { franchise: true },

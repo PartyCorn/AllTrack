@@ -39,15 +39,21 @@ export class FranchisesController {
   @ApiParam({ name: 'userId', example: 1, description: 'ID пользователя' })
   @ApiQuery({ name: 'page', type: Number, required: false, description: 'Номер страницы' })
   @ApiQuery({ name: 'limit', type: Number, required: false, description: 'Количество элементов на странице' })
+  @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'name'], description: 'Сортировка по полю' })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'], description: 'Порядок сортировки' })
   @ApiResponse({ status: 200, type: PaginatedFranchisesResponseDto, description: 'Список франшиз с пагинацией' })
   getUserFranchises(
     @Param('userId') userId: number,
     @Query('page') page: string,
-    @Query('limit') limit: string
+    @Query('limit') limit: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string
   ) {
     const options = {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
+      sortBy,
+      sortOrder: sortOrder as 'asc' | 'desc',
     };
     return this.franchisesService.getUserFranchises(Number(userId), options);
   }

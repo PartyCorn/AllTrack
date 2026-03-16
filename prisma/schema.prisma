@@ -23,6 +23,10 @@ model User {
   franchises    Franchise[]
   achievements  UserAchievement[]
   notifications Notification[]
+  sentFriendRequests    Friendship[] @relation("FriendshipRequester")
+  receivedFriendRequests Friendship[] @relation("FriendshipAddressee")
+  comments      Comment[]
+  profileComments Comment[] @relation("ProfileComments")
 
   createdAt     DateTime @default(now())
 }
@@ -109,6 +113,39 @@ model Notification {
   @@index([userId])
 }
 
+model Friendship {
+  id          Int      @id @default(autoincrement())
+  requesterId Int
+  addresseeId Int
+  status      FriendshipStatus @default(PENDING)
+
+  requester   User     @relation("FriendshipRequester", fields: [requesterId], references: [id])
+  addressee   User     @relation("FriendshipAddressee", fields: [addresseeId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  profileId Int
+  content   String
+
+  author    User     @relation(fields: [authorId], references: [id])
+  profile   User     @relation("ProfileComments", fields: [profileId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([authorId])
+}
+
 enum TitleType {
   MOVIE
   SERIES
@@ -122,4 +159,10 @@ enum Status {
   WATCHING
   COMPLETED
   DROPPED
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }

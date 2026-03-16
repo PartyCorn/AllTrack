@@ -19,8 +19,8 @@ export class TitlesService {
     private configService: ConfigService,
   ) {}
 
-  async getUserTitles(userId: number, options: PaginationOptions = {}, type?: string, excludeFranchiseTitles: boolean = false) {
-    const { skip, take, page, limit } = createPaginationOptions(options);
+  async getUserTitles(userId: number, options: any = {}, type?: string, excludeFranchiseTitles: boolean = false) {
+    const { skip, take, page, limit, sortBy, sortOrder } = createPaginationOptions(options);
 
     if (type) {
       // Return specific type with pagination
@@ -28,10 +28,25 @@ export class TitlesService {
       if (excludeFranchiseTitles) {
         where.franchiseId = null;
       }
+
+      let orderBy: any = { createdAt: 'desc' };
+      if (sortBy) {
+        const order = sortOrder === 'asc' ? 'asc' : 'desc';
+        if (sortBy === 'title') {
+          orderBy = { title: order };
+        } else if (sortBy === 'rating') {
+          orderBy = { rating: order };
+        } else if (sortBy === 'status') {
+          orderBy = { status: order };
+        } else if (sortBy === 'createdAt') {
+          orderBy = { createdAt: order };
+        }
+      }
+
       const [titles, total] = await Promise.all([
         this.prisma.userTitle.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           include: { franchise: true },
           skip,
           take,
@@ -225,5 +240,76 @@ export class TitlesService {
     return this.prisma.userTitle.delete({
       where: { id: titleId },
     })
+  }
+
+  async searchTitles(filters: any, options: any) {
+    const { skip, take, page, limit, sortBy, sortOrder } = createPaginationOptions(options);
+
+    const where: any = {};
+
+    if (filters.userId) {
+      where.userId = filters.userId;
+    }
+
+    if (filters.q) {
+      where.title = { contains: filters.q, mode: 'insensitive' };
+    }
+
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.ratingMin !== undefined || filters.ratingMax !== undefined) {
+      where.rating = {};
+      if (filters.ratingMin !== undefined) {
+        where.rating.gte = filters.ratingMin;
+      }
+      if (filters.ratingMax !== undefined) {
+        where.rating.lte = filters.ratingMax;
+      }
+    }
+
+    if (filters.franchiseId) {
+      where.franchiseId = filters.franchiseId;
+    }
+
+    let orderBy: any = { createdAt: 'desc' };
+    if (sortBy) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      if (sortBy === 'title') {
+        orderBy = { title: order };
+      } else if (sortBy === 'rating') {
+        orderBy = { rating: order };
+      } else if (sortBy === 'status') {
+        orderBy = { status: order };
+      } else if (sortBy === 'createdAt') {
+        orderBy = { createdAt: order };
+      }
+    }
+
+    const [titles, total] = await Promise.all([
+      this.prisma.userTitle.findMany({
+        where,
+        orderBy,
+        include: { franchise: true, user: true },
+        skip,
+        take,
+      }),
+      this.prisma.userTitle.count({ where }),
+    ]);
+
+    const items = titles.map((title) => ({
+      ...title,
+      progressPercent:
+        title.totalUnits && title.totalUnits > 0
+          ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
+          : 0,
+    }));
+
+    return createPaginatedResult(items, total, page, limit);
   }
 }

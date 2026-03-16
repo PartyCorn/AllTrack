@@ -14,9 +14,11 @@ import { CoversModule } from './covers/covers.module';
 import { NotificationCleanupService } from './notification-cleanup.service';
 import { NotificationEventsService } from './notification-events.service';
 import { NotificationsModule } from './notifications/notifications.module';
+import { FriendsModule } from './friends/friends.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, AchievementsModule, CoversModule, NotificationsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, AchievementsModule, CoversModule, NotificationsModule, FriendsModule, CommentsModule],
   controllers: [TitlesController, FranchisesController],
   providers: [TitlesService, GamificationService, FranchisesService, NotificationCleanupService, NotificationEventsService],
 })
