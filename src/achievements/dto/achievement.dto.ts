@@ -7,10 +7,16 @@ export class AchievementDto {
   @ApiProperty({ description: 'Код достижения', example: 'FIRST_TITLE' })
   code: string;
 
-  @ApiProperty({ description: 'Название достижения', example: 'First Title Added' })
+  @ApiProperty({
+    description: 'Название достижения',
+    example: 'First Title Added',
+  })
   title: string;
 
-  @ApiProperty({ description: 'Описание достижения', example: 'Added your first title' })
+  @ApiProperty({
+    description: 'Описание достижения',
+    example: 'Added your first title',
+  })
   description: string;
 
   @ApiProperty({ description: 'Иконка достижения', example: '🏆' })

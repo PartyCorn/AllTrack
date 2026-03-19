@@ -1,13 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TitlesService } from './titles.service';
 import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { TitlesService } from './titles.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { AchievementsService } from '../achievements/achievements.service';
+import { GamificationService } from '../gamification/gamification.service';
+import { NotificationEventsService } from '../notification-events.service';
 
 describe('TitlesService', () => {
   let service: TitlesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TitlesService],
+      providers: [
+        TitlesService,
+        PrismaService,
+        ConfigService,
+        AchievementsService,
+        GamificationService,
+        NotificationEventsService,
+      ],
     }).compile();
 
     service = module.get<TitlesService>(TitlesService);

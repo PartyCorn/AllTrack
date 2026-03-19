@@ -2,13 +2,17 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreateUpdateTitleDto } from './dto/create-update-title.dto'
-import { GamificationService } from '../gamification/gamification.service'
-import { AchievementsService } from '../achievements/achievements.service'
-import { createPaginationOptions, createPaginatedResult, PaginationOptions } from '../common/pagination'
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateUpdateTitleDto } from './dto/create-update-title.dto';
+import { GamificationService } from '../gamification/gamification.service';
+import { AchievementsService } from '../achievements/achievements.service';
+import {
+  createPaginationOptions,
+  createPaginatedResult,
+  PaginationOptions,
+} from '../common/pagination';
 
 @Injectable()
 export class TitlesService {
@@ -19,8 +23,14 @@ export class TitlesService {
     private configService: ConfigService,
   ) {}
 
-  async getUserTitles(userId: number, options: any = {}, type?: string, excludeFranchiseTitles: boolean = false) {
-    const { skip, take, page, limit, sortBy, sortOrder } = createPaginationOptions(options);
+  async getUserTitles(
+    userId: number,
+    options: any = {},
+    type?: string,
+    excludeFranchiseTitles: boolean = false,
+  ) {
+    const { skip, take, page, limit, sortBy, sortOrder } =
+      createPaginationOptions(options);
 
     if (type) {
       // Return specific type with pagination
@@ -99,7 +109,7 @@ export class TitlesService {
     note?: string,
   ) {
     if (currentUnit !== undefined && currentUnit < 0) {
-      throw new BadRequestException('currentUnit cannot be negative')
+      throw new BadRequestException('currentUnit cannot be negative');
     }
 
     if (
@@ -107,17 +117,15 @@ export class TitlesService {
       currentUnit !== undefined &&
       currentUnit > totalUnits
     ) {
-      throw new BadRequestException(
-        'currentUnit cannot exceed totalUnits',
-      )
+      throw new BadRequestException('currentUnit cannot exceed totalUnits');
     }
 
     if (rating !== undefined && (rating < 0 || rating > 10)) {
-      throw new BadRequestException('rating must be between 0 and 10')
+      throw new BadRequestException('rating must be between 0 and 10');
     }
 
     if (note && note.length > 500) {
-      throw new BadRequestException('note cannot exceed 500 characters')
+      throw new BadRequestException('note cannot exceed 500 characters');
     }
   }
 
@@ -127,20 +135,25 @@ export class TitlesService {
       dto.currentUnit,
       dto.rating,
       dto.note,
-    )
+    );
 
     // Validate franchise title limit
     if (dto.franchiseId) {
       const franchiseTitlesCount = await this.prisma.userTitle.count({
         where: { franchiseId: dto.franchiseId },
       });
-      const maxTitles = this.configService.get<number>('franchises.maxTitles', 100);
+      const maxTitles = this.configService.get<number>(
+        'franchises.maxTitles',
+        100,
+      );
       if (franchiseTitlesCount >= maxTitles) {
-        throw new BadRequestException(`Franchise cannot have more than ${maxTitles} titles`);
+        throw new BadRequestException(
+          `Franchise cannot have more than ${maxTitles} titles`,
+        );
       }
     }
 
-    let status = dto.status ?? 'PLANNED'
+    let status = dto.status ?? 'PLANNED';
 
     // авто COMPLETED если прогресс == максимум
     if (
@@ -148,7 +161,7 @@ export class TitlesService {
       dto.currentUnit !== undefined &&
       dto.currentUnit === dto.totalUnits
     ) {
-      status = 'COMPLETED'
+      status = 'COMPLETED';
     }
 
     const title = await this.prisma.userTitle.create({
@@ -158,7 +171,7 @@ export class TitlesService {
         currentUnit: dto.currentUnit ?? 0,
         status,
       },
-    })
+    });
 
     // await this.gamificationService.addXp(userId, 10)
 
@@ -170,7 +183,7 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return title
+    return title;
   }
 
   async updateTitle(
@@ -180,20 +193,20 @@ export class TitlesService {
   ) {
     const existing = await this.prisma.userTitle.findUnique({
       where: { id: titleId },
-    })
+    });
 
     if (!existing || existing.userId !== userId) {
-      throw new NotFoundException('Title not found')
+      throw new NotFoundException('Title not found');
     }
 
-    const totalUnits = dto.totalUnits ?? existing.totalUnits
-    const currentUnit = dto.currentUnit ?? existing.currentUnit
-    const rating = dto.rating ?? existing.rating
-    const note = dto.note ?? existing.note
+    const totalUnits = dto.totalUnits ?? existing.totalUnits;
+    const currentUnit = dto.currentUnit ?? existing.currentUnit;
+    const rating = dto.rating ?? existing.rating;
+    const note = dto.note ?? existing.note;
 
-    this.validateTitleData(totalUnits!, currentUnit!, rating!, note!)
+    this.validateTitleData(totalUnits!, currentUnit!, rating!, note!);
 
-    let status = dto.status ?? existing.status
+    let status = dto.status ?? existing.status;
 
     // авто COMPLETED если прогресс достигнут
     if (
@@ -201,7 +214,7 @@ export class TitlesService {
       currentUnit !== undefined &&
       currentUnit === totalUnits
     ) {
-      status = 'COMPLETED'
+      status = 'COMPLETED';
     }
 
     const updated = await this.prisma.userTitle.update({
@@ -210,7 +223,7 @@ export class TitlesService {
         ...dto,
         status,
       },
-    })
+    });
 
     // XP если впервые завершили
     // if (
@@ -223,27 +236,28 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return updated
+    return updated;
   }
 
   async deleteTitle(userId: number, titleId: number) {
     const title = await this.prisma.userTitle.findUnique({
       where: { id: titleId },
-    })
+    });
 
     if (!title || title.userId !== userId) {
-      throw new NotFoundException('Title not found')
+      throw new NotFoundException('Title not found');
     }
 
     // await this.gamificationService.addXp(userId, -10)
 
     return this.prisma.userTitle.delete({
       where: { id: titleId },
-    })
+    });
   }
 
   async searchTitles(filters: any, options: any) {
-    const { skip, take, page, limit, sortBy, sortOrder } = createPaginationOptions(options);
+    const { skip, take, page, limit, sortBy, sortOrder } =
+      createPaginationOptions(options);
 
     const where: any = {};
 

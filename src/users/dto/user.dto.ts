@@ -5,7 +5,11 @@ export class UserDto {
   @ApiProperty({ description: 'ID пользователя', example: 1 })
   id: number;
 
-  @ApiProperty({ description: 'Email (виден только владельцу)', nullable: true, example: 'user@example.com' })
+  @ApiProperty({
+    description: 'Email (виден только владельцу)',
+    nullable: true,
+    example: 'user@example.com',
+  })
   email: string | null;
 
   @ApiProperty({ description: 'Никнейм', example: 'andreyy' })
@@ -41,6 +45,14 @@ export class UserDto {
   @ApiProperty({ description: 'Это ваш профиль', example: true })
   isMyProfile: boolean;
 
-  @ApiProperty({ description: 'Статус дружбы', enum: ['friends', 'not_friends', 'pending_outgoing', 'pending_incoming'], example: 'friends' })
-  friendStatus: 'friends' | 'not_friends' | 'pending_outgoing' | 'pending_incoming';
+  @ApiProperty({
+    description: 'Статус дружбы',
+    enum: ['friends', 'not_friends', 'pending_outgoing', 'pending_incoming'],
+    example: 'friends',
+  })
+  friendStatus:
+    | 'friends'
+    | 'not_friends'
+    | 'pending_outgoing'
+    | 'pending_incoming';
 }

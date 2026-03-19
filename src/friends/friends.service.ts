@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationEventsService } from '../notification-events.service';
 
@@ -33,7 +37,9 @@ export class FriendsService {
     });
 
     if (existing) {
-      throw new BadRequestException('Friendship already exists or request pending');
+      throw new BadRequestException(
+        'Friendship already exists or request pending',
+      );
     }
 
     const friendship = await this.prisma.friendship.create({
@@ -45,10 +51,14 @@ export class FriendsService {
 
     // Send notification
     const requesterNickname = await this.getUserNickname(requesterId);
-    await this.notificationEvents.sendNotification(addressee.id, 'friend_request', {
-      requesterNickname,
-      friendId: requesterId,
-    });
+    await this.notificationEvents.sendNotification(
+      addressee.id,
+      'friend_request',
+      {
+        requesterNickname,
+        friendId: requesterId,
+      },
+    );
 
     return friendship;
   }
@@ -74,10 +84,14 @@ export class FriendsService {
 
     // Send notification to requester
     const accepterNickname = await this.getUserNickname(userId);
-    await this.notificationEvents.sendNotification(friendId, 'friend_accepted', {
-      accepterNickname,
-      friendId: userId,
-    });
+    await this.notificationEvents.sendNotification(
+      friendId,
+      'friend_accepted',
+      {
+        accepterNickname,
+        friendId: userId,
+      },
+    );
 
     return updated;
   }
@@ -124,7 +138,9 @@ export class FriendsService {
       },
     });
 
-    return friendships.map(f => f.requesterId === userId ? f.addressee : f.requester);
+    return friendships.map((f) =>
+      f.requesterId === userId ? f.addressee : f.requester,
+    );
   }
 
   async getFriendRequests(userId: number) {
@@ -138,7 +154,7 @@ export class FriendsService {
       },
     });
 
-    return requests.map(r => r.requester);
+    return requests.map((r) => r.requester);
   }
 
   private async getUserNickname(userId: number): Promise<string> {

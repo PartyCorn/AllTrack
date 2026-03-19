@@ -8,13 +8,19 @@ export class UpdateUserDto {
   @MaxLength(16)
   nickname?: string;
 
-  @ApiProperty({ example: 'Hello, I am a new user!', description: 'Биография пользователя' })
+  @ApiProperty({
+    example: 'Hello, I am a new user!',
+    description: 'Биография пользователя',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(48)
   bio?: string;
 
-  @ApiProperty({ example: 'https://example.com/avatar.jpg', description: 'Ссылка на аватар' })
+  @ApiProperty({
+    example: 'https://example.com/avatar.jpg',
+    description: 'Ссылка на аватар',
+  })
   @IsOptional()
   @IsString()
   avatarUrl?: string;

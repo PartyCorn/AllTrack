@@ -1,12 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { createPaginationOptions, createPaginatedResult, PaginationOptions } from '../common/pagination';
+import {
+  createPaginationOptions,
+  createPaginatedResult,
+  PaginationOptions,
+} from '../common/pagination';
 
 @Injectable()
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
-  async getUserNotifications(userId: number, unreadOnly: boolean = false, options: PaginationOptions = {}) {
+  async getUserNotifications(
+    userId: number,
+    unreadOnly: boolean = false,
+    options: PaginationOptions = {},
+  ) {
     const { skip, take, page, limit } = createPaginationOptions(options);
 
     const where: any = { userId };

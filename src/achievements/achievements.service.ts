@@ -17,22 +17,24 @@ export class AchievementsService {
     });
     const totalUsers = await this.prisma.user.count();
 
-    return await Promise.all(achievements.map(async (a) => {
-      const unlockCount = await this.prisma.userAchievement.count({
-        where: { achievementId: a.achievement.id },
-      });
-      const rarity = totalUsers > 0 ? unlockCount / totalUsers : 0;
-      return {
-        id: a.id,
-        achievementId: a.achievement.id,
-        title: a.achievement.title,
-        description: a.achievement.description,
-        icon: a.achievement.icon,
-        xpReward: a.achievement.xpReward,
-        unlockedAt: a.unlockedAt,
-        rarity,
-      };
-    }));
+    return await Promise.all(
+      achievements.map(async (a) => {
+        const unlockCount = await this.prisma.userAchievement.count({
+          where: { achievementId: a.achievement.id },
+        });
+        const rarity = totalUsers > 0 ? unlockCount / totalUsers : 0;
+        return {
+          id: a.id,
+          achievementId: a.achievement.id,
+          title: a.achievement.title,
+          description: a.achievement.description,
+          icon: a.achievement.icon,
+          xpReward: a.achievement.xpReward,
+          unlockedAt: a.unlockedAt,
+          rarity,
+        };
+      }),
+    );
   }
 
   async getAllAchievements(userId?: number, filter?: string) {
@@ -46,7 +48,9 @@ export class AchievementsService {
         select: { achievementId: true, unlockedAt: true },
       });
     }
-    const userAchievementMap = new Map(userAchievements.map(ua => [ua.achievementId, ua.unlockedAt]));
+    const userAchievementMap = new Map(
+      userAchievements.map((ua) => [ua.achievementId, ua.unlockedAt]),
+    );
 
     const achievementsWithDetails = await Promise.all(
       achievements.map(async (achievement) => {
@@ -62,13 +66,13 @@ export class AchievementsService {
           unlocked,
           unlockedAt,
         };
-      })
+      }),
     );
 
     if (filter === 'unlocked') {
-      return achievementsWithDetails.filter(a => a.unlocked);
+      return achievementsWithDetails.filter((a) => a.unlocked);
     } else if (filter === 'locked') {
-      return achievementsWithDetails.filter(a => !a.unlocked);
+      return achievementsWithDetails.filter((a) => !a.unlocked);
     }
     return achievementsWithDetails;
   }
@@ -84,7 +88,9 @@ export class AchievementsService {
 
     if (!user) return;
 
-    const existingAchievementIds = user.achievements.map(ua => ua.achievementId);
+    const existingAchievementIds = user.achievements.map(
+      (ua) => ua.achievementId,
+    );
     const allAchievements = await this.prisma.achievement.findMany();
 
     const newAchievements: any[] = [];
@@ -92,7 +98,9 @@ export class AchievementsService {
     for (const achievement of allAchievements) {
       if (existingAchievementIds.includes(achievement.id)) continue;
 
-      const condition = AchievementConditionFactory.getCondition(achievement.code);
+      const condition = AchievementConditionFactory.getCondition(
+        achievement.code,
+      );
       if (!condition) continue;
 
       if (condition.check(user)) {
@@ -108,7 +116,13 @@ export class AchievementsService {
 
         // Create notification asynchronously
         setImmediate(() => {
-          this.createNotification(userId, 'achievement_unlocked', `Achievement Unlocked: ${achievement.title}`, `You have unlocked the "${achievement.title}" achievement!`, { achievementId: achievement.id });
+          this.createNotification(
+            userId,
+            'achievement_unlocked',
+            `Achievement Unlocked: ${achievement.title}`,
+            `You have unlocked the "${achievement.title}" achievement!`,
+            { achievementId: achievement.id },
+          );
         });
 
         newAchievements.push(achievement);
@@ -129,7 +143,13 @@ export class AchievementsService {
     });
   }
 
-  private async createNotification(userId: number, type: string, title: string, message: string, data?: any) {
+  private async createNotification(
+    userId: number,
+    type: string,
+    title: string,
+    message: string,
+    data?: any,
+  ) {
     const notification = await this.prisma.notification.create({
       data: {
         userId,

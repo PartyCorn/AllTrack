@@ -1,26 +1,29 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger';
 
 export class FranchiseDto {
   @ApiProperty({ example: 1, description: 'ID франшизы' })
-  id: number
+  id: number;
 
   @ApiProperty({ example: 'Naruto', description: 'Название франшизы' })
-  name: string
+  name: string;
 
-  @ApiProperty({ example: 'Shonen ninja universe', description: 'Описание франшизы' })
-  description?: string
+  @ApiProperty({
+    example: 'Shonen ninja universe',
+    description: 'Описание франшизы',
+  })
+  description?: string;
 
   @ApiProperty({ example: 1, description: 'ID пользователя-владельца' })
-  userId: number
+  userId: number;
 
   @ApiProperty({ description: 'Дата создания' })
-  createdAt: Date
+  createdAt: Date;
 
   @ApiProperty({ description: 'Дата последнего обновления' })
-  updatedAt: Date
+  updatedAt: Date;
 
   @ApiProperty({ example: 60, description: 'Процент прогресса по франшизе' })
-  progressPercent: number
+  progressPercent: number;
 
   @ApiProperty({ description: 'Статистика', type: Object })
   stats: {

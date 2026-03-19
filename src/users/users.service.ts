@@ -1,5 +1,9 @@
 // src/users/users.service.ts
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TitleDto } from '../titles/dto/title.dto';
@@ -20,7 +24,7 @@ export class UsersService {
           include: { achievement: true },
         },
         sentFriendRequests: true,
-        receivedFriendRequests: true
+        receivedFriendRequests: true,
       },
     });
 
@@ -40,7 +44,7 @@ export class UsersService {
           include: { achievement: true },
         },
         sentFriendRequests: true,
-        receivedFriendRequests: true
+        receivedFriendRequests: true,
       },
     });
 
@@ -85,38 +89,57 @@ export class UsersService {
       status: t.status,
       rating: t.rating,
       note: t.note,
-      franchise: t.franchise ? { id: t.franchise.id, name: t.franchise.name } : null,
+      franchise: t.franchise
+        ? { id: t.franchise.id, name: t.franchise.name }
+        : null,
       createdAt: t.createdAt,
       updatedAt: t.updatedAt,
     }));
 
-    const achievements: UserAchievementDto[] = (user.achievements || []).map((ua) => ({
-      id: ua.id,
-      achievementId: ua.achievement.id,
-      title: ua.achievement.title,
-      description: ua.achievement.description,
-      icon: ua.achievement.icon,
-      xpReward: ua.achievement.xpReward,
-      unlockedAt: ua.unlockedAt,
-    })).slice(0, 10); // Limit to first 10
+    const achievements: UserAchievementDto[] = (user.achievements || [])
+      .map((ua) => ({
+        id: ua.id,
+        achievementId: ua.achievement.id,
+        title: ua.achievement.title,
+        description: ua.achievement.description,
+        icon: ua.achievement.icon,
+        xpReward: ua.achievement.xpReward,
+        unlockedAt: ua.unlockedAt,
+      }))
+      .slice(0, 10); // Limit to first 10
 
     // Calculate stats
-    const titlesCount = titles.reduce((acc, title) => {
-      acc[title.type] = (acc[title.type] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const titlesCount = titles.reduce(
+      (acc, title) => {
+        acc[title.type] = (acc[title.type] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number },
+    );
 
-    const statusCount = titles.reduce((acc, title) => {
-      acc[title.status] = (acc[title.status] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const statusCount = titles.reduce(
+      (acc, title) => {
+        acc[title.status] = (acc[title.status] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number },
+    );
 
     // Calculate friend status
-    let friendStatus: 'friends' | 'not_friends' | 'pending_outgoing' | 'pending_incoming' = 'not_friends';
+    let friendStatus:
+      | 'friends'
+      | 'not_friends'
+      | 'pending_outgoing'
+      | 'pending_incoming' = 'not_friends';
     if (requesterId && requesterId !== user.id) {
       // Check friendship status
-      const friendship = user.sentFriendRequests?.find((f: any) => f.addresseeId === requesterId) ||
-                        user.receivedFriendRequests?.find((f: any) => f.requesterId === requesterId);
+      const friendship =
+        user.sentFriendRequests?.find(
+          (f: any) => f.addresseeId === requesterId,
+        ) ||
+        user.receivedFriendRequests?.find(
+          (f: any) => f.requesterId === requesterId,
+        );
       if (friendship) {
         if (friendship.status === 'ACCEPTED') {
           friendStatus = 'friends';
@@ -184,8 +207,13 @@ export class UsersService {
 
     if (format === 'csv') {
       // Simple CSV for titles
-      const csv = 'id,type,title,status,rating\n' +
-        user.titles.map(t => `${t.id},${t.type},${t.title},${t.status},${t.rating || ''}`).join('\n');
+      const csv =
+        'id,type,title,status,rating\n' +
+        user.titles
+          .map(
+            (t) => `${t.id},${t.type},${t.title},${t.status},${t.rating || ''}`,
+          )
+          .join('\n');
       return csv;
     }
 

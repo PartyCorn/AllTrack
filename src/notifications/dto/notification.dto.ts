@@ -7,16 +7,29 @@ export class NotificationDto {
   @ApiProperty({ description: 'ID пользователя', example: 1 })
   userId: number;
 
-  @ApiProperty({ description: 'Тип уведомления', example: 'achievement_unlocked' })
+  @ApiProperty({
+    description: 'Тип уведомления',
+    example: 'achievement_unlocked',
+  })
   type: string;
 
-  @ApiProperty({ description: 'Заголовок уведомления', example: 'Новое достижение!' })
+  @ApiProperty({
+    description: 'Заголовок уведомления',
+    example: 'Новое достижение!',
+  })
   title: string;
 
-  @ApiProperty({ description: 'Сообщение уведомления', example: 'Вы разблокировали достижение "Первый тайтл"' })
+  @ApiProperty({
+    description: 'Сообщение уведомления',
+    example: 'Вы разблокировали достижение "Первый тайтл"',
+  })
   message: string;
 
-  @ApiProperty({ description: 'Дополнительные данные', nullable: true, type: Object })
+  @ApiProperty({
+    description: 'Дополнительные данные',
+    nullable: true,
+    type: Object,
+  })
   data?: any;
 
   @ApiProperty({ description: 'Прочитано ли уведомление', example: false })

@@ -1,11 +1,11 @@
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import { ValidationPipe } from '@nestjs/common'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
@@ -13,17 +13,17 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     }),
-  )
+  );
 
   const config = new DocumentBuilder()
     .setTitle('AllTrack API')
-    .setDescription('Backend API for media tracking application')
+    .setDescription('Серверный API для приложения для отслеживания мультимедиа')
     .setVersion('1.0')
     .addBearerAuth()
-    .build()
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('docs', app, document)
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }

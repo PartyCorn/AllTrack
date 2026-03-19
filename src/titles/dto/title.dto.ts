@@ -20,7 +20,10 @@ export class TitleDto {
   @ApiProperty({ description: 'Ссылка на внешний ресурс', nullable: true })
   externalUrl?: string;
 
-  @ApiProperty({ description: 'Всего единиц (эпизоды, главы, уровни)', nullable: true })
+  @ApiProperty({
+    description: 'Всего единиц (эпизоды, главы, уровни)',
+    nullable: true,
+  })
   totalUnits?: number;
 
   @ApiProperty({ description: 'Текущий прогресс', nullable: true })
@@ -45,5 +48,5 @@ export class TitleDto {
   updatedAt: Date;
 
   @ApiProperty({ description: 'Процент прогресса', example: 75 })
-  progressPercent: number
+  progressPercent: number;
 }

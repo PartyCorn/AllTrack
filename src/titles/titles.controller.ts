@@ -10,7 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
   Query,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -19,13 +19,13 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger'
-import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard'
-import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard'
-import { TitlesService } from './titles.service'
-import { CreateUpdateTitleDto } from './dto/create-update-title.dto'
-import { TitleDto } from './dto/title.dto'
-import { PaginatedTitlesResponseDto } from './dto/paginated-titles-response.dto'
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard';
+import { OptionalJwtAuthGuard } from '../common/guards/jwt/optional-jwt.guard';
+import { TitlesService } from './titles.service';
+import { CreateUpdateTitleDto } from './dto/create-update-title.dto';
+import { TitleDto } from './dto/title.dto';
+import { PaginatedTitlesResponseDto } from './dto/paginated-titles-response.dto';
 
 @ApiTags('Тайтлы')
 @Controller('titles')
@@ -37,17 +37,71 @@ export class TitlesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Поиск тайтлов с фильтрами' })
   @ApiQuery({ name: 'q', required: false, description: 'Поиск по названию' })
-  @ApiQuery({ name: 'type', required: false, enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'], description: 'Фильтр по типу' })
-  @ApiQuery({ name: 'status', required: false, enum: ['PLANNED', 'WATCHING', 'COMPLETED', 'DROPPED'], description: 'Фильтр по статусу' })
-  @ApiQuery({ name: 'ratingMin', required: false, type: Number, description: 'Минимальный рейтинг' })
-  @ApiQuery({ name: 'ratingMax', required: false, type: Number, description: 'Максимальный рейтинг' })
-  @ApiQuery({ name: 'franchiseId', required: false, type: Number, description: 'ID франшизы' })
-  @ApiQuery({ name: 'userId', required: false, type: Number, description: 'ID пользователя (для публичных профилей)' })
-  @ApiQuery({ name: 'page', required: false, example: 1, description: 'Номер страницы' })
-  @ApiQuery({ name: 'limit', required: false, example: 50, description: 'Количество элементов на странице' })
-  @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'title', 'rating', 'status'], description: 'Сортировка по полю' })
-  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'], description: 'Порядок сортировки' })
-  @ApiResponse({ status: 200, type: PaginatedTitlesResponseDto, description: 'Результаты поиска' })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'],
+    description: 'Фильтр по типу',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PLANNED', 'WATCHING', 'COMPLETED', 'DROPPED'],
+    description: 'Фильтр по статусу',
+  })
+  @ApiQuery({
+    name: 'ratingMin',
+    required: false,
+    type: Number,
+    description: 'Минимальный рейтинг',
+  })
+  @ApiQuery({
+    name: 'ratingMax',
+    required: false,
+    type: Number,
+    description: 'Максимальный рейтинг',
+  })
+  @ApiQuery({
+    name: 'franchiseId',
+    required: false,
+    type: Number,
+    description: 'ID франшизы',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: false,
+    type: Number,
+    description: 'ID пользователя (для публичных профилей)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['createdAt', 'title', 'rating', 'status'],
+    description: 'Сортировка по полю',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Порядок сортировки',
+  })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedTitlesResponseDto,
+    description: 'Результаты поиска',
+  })
   searchTitles(
     @Query('q') q?: string,
     @Query('type') type?: string,
@@ -83,13 +137,48 @@ export class TitlesController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получить все тайтлы пользователя по ID' })
   @ApiParam({ name: 'userId', example: 1, description: 'ID пользователя' })
-  @ApiQuery({ name: 'page', required: false, example: 1, description: 'Номер страницы' })
-  @ApiQuery({ name: 'limit', required: false, example: 50, description: 'Количество элементов на странице' })
-  @ApiQuery({ name: 'type', required: false, enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'], description: 'Тип тайтла' })
-  @ApiQuery({ name: 'excludeFranchiseTitles', required: false, type: Boolean, example: true, description: 'Исключить тайтлы из франшиз' })
-  @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'title', 'rating', 'status'], description: 'Сортировка по полю' })
-  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'], description: 'Порядок сортировки' })
-  @ApiResponse({ status: 200, type: PaginatedTitlesResponseDto, description: 'Список тайтлов с пагинацией' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'],
+    description: 'Тип тайтла',
+  })
+  @ApiQuery({
+    name: 'excludeFranchiseTitles',
+    required: false,
+    type: Boolean,
+    example: true,
+    description: 'Исключить тайтлы из франшиз',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['createdAt', 'title', 'rating', 'status'],
+    description: 'Сортировка по полю',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Порядок сортировки',
+  })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedTitlesResponseDto,
+    description: 'Список тайтлов с пагинацией',
+  })
   getUserTitles(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('page') page?: string,
@@ -113,10 +202,13 @@ export class TitlesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать тайтл для текущего пользователя' })
-  @ApiBody({ type: CreateUpdateTitleDto, description: 'Данные для создания тайтла' })
+  @ApiBody({
+    type: CreateUpdateTitleDto,
+    description: 'Данные для создания тайтла',
+  })
   @ApiResponse({ status: 201, type: TitleDto, description: 'Созданный тайтл' })
   addTitle(@Req() req: any, @Body() dto: CreateUpdateTitleDto) {
-    return this.titlesService.createTitle(req.user.userId, dto)
+    return this.titlesService.createTitle(req.user.userId, dto);
   }
 
   @Put(':id')
@@ -124,14 +216,21 @@ export class TitlesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить тайтл' })
   @ApiParam({ name: 'id', example: 1, description: 'ID тайтла' })
-  @ApiBody({ type: CreateUpdateTitleDto, description: 'Данные для обновления тайтла' })
-  @ApiResponse({ status: 200, type: TitleDto, description: 'Обновленный тайтл' })
+  @ApiBody({
+    type: CreateUpdateTitleDto,
+    description: 'Данные для обновления тайтла',
+  })
+  @ApiResponse({
+    status: 200,
+    type: TitleDto,
+    description: 'Обновленный тайтл',
+  })
   updateTitle(
     @Req() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateUpdateTitleDto,
   ) {
-    return this.titlesService.updateTitle(req.user.userId, id, dto)
+    return this.titlesService.updateTitle(req.user.userId, id, dto);
   }
 
   @Delete(':id')
@@ -140,10 +239,7 @@ export class TitlesController {
   @ApiOperation({ summary: 'Удалить тайтл' })
   @ApiParam({ name: 'id', example: 1, description: 'ID тайтла' })
   @ApiResponse({ status: 200, description: 'Тайтл удален' })
-  deleteTitle(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.titlesService.deleteTitle(req.user.userId, id)
+  deleteTitle(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
+    return this.titlesService.deleteTitle(req.user.userId, id);
   }
 }

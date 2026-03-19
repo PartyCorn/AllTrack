@@ -1,5 +1,21 @@
-import { Controller, Get, Post, Put, Delete, Param, Req, UseGuards, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Req,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard';
 import { FriendsService } from './friends.service';
 import { FriendDto } from './dto/friend.dto';
@@ -26,7 +42,10 @@ export class FriendsController {
   @ApiOperation({ summary: 'Принять заявку в друзья' })
   @ApiParam({ name: 'friendId', description: 'ID друга' })
   @ApiResponse({ status: 200, description: 'Заявка принята' })
-  acceptFriendRequest(@Req() req: any, @Param('friendId', ParseIntPipe) friendId: number) {
+  acceptFriendRequest(
+    @Req() req: any,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
     return this.friendsService.acceptFriendRequest(req.user.userId, friendId);
   }
 
@@ -36,7 +55,10 @@ export class FriendsController {
   @ApiOperation({ summary: 'Удалить из друзей или отклонить заявку' })
   @ApiParam({ name: 'friendId', description: 'ID друга' })
   @ApiResponse({ status: 200, description: 'Удалено' })
-  removeFriend(@Req() req: any, @Param('friendId', ParseIntPipe) friendId: number) {
+  removeFriend(
+    @Req() req: any,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
     return this.friendsService.removeFriend(req.user.userId, friendId);
   }
 

@@ -38,7 +38,9 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить профиль текущего аутентифицированного пользователя' })
+  @ApiOperation({
+    summary: 'Получить профиль текущего аутентифицированного пользователя',
+  })
   @ApiResponse({
     status: 200,
     description: 'Возвращает профиль текущего пользователя',
@@ -55,7 +57,10 @@ export class UsersController {
   @Put('me/edit')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Редактировать профиль текущего пользователя (никнейм, био, аватар, приватность)' })
+  @ApiOperation({
+    summary:
+      'Редактировать профиль текущего пользователя (никнейм, био, аватар, приватность)',
+  })
   @ApiBody({
     type: UpdateUserDto,
     description: 'Поля, которые можно обновить',
@@ -76,7 +81,9 @@ export class UsersController {
   @Get(':nickname')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить публичный профиль пользователя по никнейму' })
+  @ApiOperation({
+    summary: 'Получить публичный профиль пользователя по никнейму',
+  })
   @ApiParam({
     name: 'nickname',
     description: 'Уникальный никнейм пользователя',
@@ -89,7 +96,10 @@ export class UsersController {
   })
   @ApiResponse({ status: 403, description: 'Профиль приватный' })
   @ApiResponse({ status: 404, description: 'Пользователь не найден' })
-  getPublicProfile(@Param('nickname') nickname: string, @Req() req: any): Promise<UserDto> {
+  getPublicProfile(
+    @Param('nickname') nickname: string,
+    @Req() req: any,
+  ): Promise<UserDto> {
     const requesterId = req?.user?.userId;
     return this.usersService.getPublicProfile(nickname, requesterId);
   }
@@ -101,9 +111,18 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Экспорт данных своего профиля' })
-  @ApiQuery({ name: 'format', enum: ['json', 'csv'], required: false, description: 'Формат экспорта' })
+  @ApiQuery({
+    name: 'format',
+    enum: ['json', 'csv'],
+    required: false,
+    description: 'Формат экспорта',
+  })
   @ApiResponse({ status: 200, description: 'Экспортированные данные' })
   exportProfile(@Req() req: any, @Query('format') format?: string) {
-    return this.usersService.exportUserData(req.user.userId, format || 'json', req.user.userId);
+    return this.usersService.exportUserData(
+      req.user.userId,
+      format || 'json',
+      req.user.userId,
+    );
   }
 }

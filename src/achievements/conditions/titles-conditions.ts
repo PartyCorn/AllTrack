@@ -26,7 +26,9 @@ export class FirstCompletedCondition implements AchievementCondition {
 
 export class TenCompletedCondition implements AchievementCondition {
   check(user: any): boolean {
-    return user.titles.filter((t: any) => t.status === 'COMPLETED').length >= 10;
+    return (
+      user.titles.filter((t: any) => t.status === 'COMPLETED').length >= 10
+    );
   }
 }
 
@@ -45,7 +47,9 @@ export class AllTypesCondition implements AchievementCondition {
 
 export class HighRaterCondition implements AchievementCondition {
   check(user: any): boolean {
-    const ratedTitles = user.titles.filter((t: any) => t.rating && t.rating >= 9);
+    const ratedTitles = user.titles.filter(
+      (t: any) => t.rating && t.rating >= 9,
+    );
     return ratedTitles.length >= 10;
   }
 }

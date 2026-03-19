@@ -1,5 +1,25 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Req, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Req,
+  UseGuards,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiBody,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt/jwt.guard';
 import { CommentsService } from './comments.service';
 import { PaginatedResult } from '../common/pagination';
@@ -14,14 +34,20 @@ export class CommentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Оставить комментарий на профиле' })
   @ApiParam({ name: 'profileId', description: 'ID профиля' })
-  @ApiBody({ schema: { type: 'object', properties: { content: { type: 'string' } } } })
+  @ApiBody({
+    schema: { type: 'object', properties: { content: { type: 'string' } } },
+  })
   @ApiResponse({ status: 201, description: 'Комментарий создан' })
   createComment(
     @Req() req: any,
     @Param('profileId', ParseIntPipe) profileId: number,
     @Body() body: { content: string },
   ) {
-    return this.commentsService.createComment(req.user.userId, profileId, body.content);
+    return this.commentsService.createComment(
+      req.user.userId,
+      profileId,
+      body.content,
+    );
   }
 
   @Get('profile/:profileId')
@@ -29,8 +55,18 @@ export class CommentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить комментарии профиля' })
   @ApiParam({ name: 'profileId', description: 'ID профиля' })
-  @ApiQuery({ name: 'page', required: false, example: 1, description: 'Номер страницы' })
-  @ApiQuery({ name: 'limit', required: false, example: 50, description: 'Количество элементов на странице' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
   @ApiResponse({ status: 200, description: 'Список комментариев с пагинацией' })
   getProfileComments(
     @Param('profileId', ParseIntPipe) profileId: number,
@@ -49,14 +85,20 @@ export class CommentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Редактировать комментарий' })
   @ApiParam({ name: 'commentId', description: 'ID комментария' })
-  @ApiBody({ schema: { type: 'object', properties: { content: { type: 'string' } } } })
+  @ApiBody({
+    schema: { type: 'object', properties: { content: { type: 'string' } } },
+  })
   @ApiResponse({ status: 200, description: 'Комментарий обновлен' })
   updateComment(
     @Req() req: any,
     @Param('commentId', ParseIntPipe) commentId: number,
     @Body() body: { content: string },
   ) {
-    return this.commentsService.updateComment(req.user.userId, commentId, body.content);
+    return this.commentsService.updateComment(
+      req.user.userId,
+      commentId,
+      body.content,
+    );
   }
 
   @Delete(':commentId')
@@ -65,7 +107,10 @@ export class CommentsController {
   @ApiOperation({ summary: 'Удалить комментарий' })
   @ApiParam({ name: 'commentId', description: 'ID комментария' })
   @ApiResponse({ status: 200, description: 'Комментарий удален' })
-  deleteComment(@Req() req: any, @Param('commentId', ParseIntPipe) commentId: number) {
+  deleteComment(
+    @Req() req: any,
+    @Param('commentId', ParseIntPipe) commentId: number,
+  ) {
     return this.commentsService.deleteComment(req.user.userId, commentId);
   }
 }
