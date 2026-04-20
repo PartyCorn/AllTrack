@@ -29,7 +29,7 @@ export class NotificationEventsService {
         title = 'Новый комментарий';
         message = `Пользователь ${data.commenterNickname || 'кто-то'} оставил комментарий на вашем профиле`;
         break;
-      case 'watching_reminder':
+      case 'in_progress_reminder':
         title = 'Напоминание о просмотре';
         message = `Не забудьте посмотреть "${data.titleName || 'ваш тайтл'}"`;
         break;

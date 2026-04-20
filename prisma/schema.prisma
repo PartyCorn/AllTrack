@@ -44,6 +44,11 @@ model UserTitle {
 
   totalUnits    Int?
   currentUnit   Int?     @default(0)
+  favorite      Boolean  @default(false)
+  dateStarted   DateTime?
+  dateFinished  DateTime?
+  isRevisit     Boolean  @default(false)
+  revisitCount  Int      @default(0)
 
   status        Status
   rating        Int?
@@ -152,11 +157,12 @@ enum TitleType {
   ANIME
   GAME
   BOOK
+  OTHER
 }
 
 enum Status {
   PLANNED
-  WATCHING
+  IN_PROGRESS
   COMPLETED
   DROPPED
 }

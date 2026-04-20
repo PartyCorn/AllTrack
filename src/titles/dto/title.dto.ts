@@ -38,8 +38,23 @@ export class TitleDto {
   @ApiProperty({ description: 'Заметка пользователя', nullable: true })
   note?: string;
 
-  @ApiProperty({ description: 'Франшиза', nullable: true })
+  @ApiProperty({ description: 'Франшиза', nullable: true, example: null })
   franchise?: { id: number; name: string } | null;
+
+  @ApiProperty({ description: 'Избранный тайтл' })
+  favorite: boolean;
+
+  @ApiProperty({ description: 'Дата начала просмотра/прохождения/чтения', nullable: true, example: '20.04.2026' })
+  dateStarted?: string | null;
+
+  @ApiProperty({ description: 'Дата окончания просмотра/прохождения/чтения', nullable: true, example: '20.05.2026' })
+  dateFinished?: string | null;
+
+  @ApiProperty({ description: 'Тайтл отмечен как повторный просмотр/прохождение/чтение' })
+  isRevisit: boolean;
+
+  @ApiProperty({ description: 'Количество пересмотров/повторных прохождений', example: 0 })
+  revisitCount: number;
 
   @ApiProperty({ description: 'Дата создания' })
   createdAt: Date;

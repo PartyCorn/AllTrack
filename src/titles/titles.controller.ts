@@ -40,13 +40,19 @@ export class TitlesController {
   @ApiQuery({
     name: 'type',
     required: false,
-    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'],
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK', 'OTHER'],
     description: 'Фильтр по типу',
+  })
+  @ApiQuery({
+    name: 'favorite',
+    required: false,
+    type: Boolean,
+    description: 'Только избранные тайтлы',
   })
   @ApiQuery({
     name: 'status',
     required: false,
-    enum: ['PLANNED', 'WATCHING', 'COMPLETED', 'DROPPED'],
+    enum: ['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'DROPPED'],
     description: 'Фильтр по статусу',
   })
   @ApiQuery({
@@ -105,6 +111,7 @@ export class TitlesController {
   searchTitles(
     @Query('q') q?: string,
     @Query('type') type?: string,
+    @Query('favorite') favorite?: string,
     @Query('status') status?: string,
     @Query('ratingMin') ratingMin?: string,
     @Query('ratingMax') ratingMax?: string,
@@ -118,6 +125,8 @@ export class TitlesController {
     const filters = {
       q,
       type,
+      favorite:
+        favorite === 'true' ? true : favorite === 'false' ? false : undefined,
       status,
       ratingMin: ratingMin ? parseInt(ratingMin) : undefined,
       ratingMax: ratingMax ? parseInt(ratingMax) : undefined,
@@ -152,8 +161,14 @@ export class TitlesController {
   @ApiQuery({
     name: 'type',
     required: false,
-    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK'],
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK', 'OTHER'],
     description: 'Тип тайтла',
+  })
+  @ApiQuery({
+    name: 'favorite',
+    required: false,
+    type: Boolean,
+    description: 'Только избранные тайтлы',
   })
   @ApiQuery({
     name: 'excludeFranchiseTitles',
@@ -184,6 +199,7 @@ export class TitlesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('type') type?: string,
+    @Query('favorite') favorite?: string,
     @Query('excludeFranchiseTitles') excludeFranchiseTitles?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
@@ -195,7 +211,87 @@ export class TitlesController {
       sortOrder: sortOrder as 'asc' | 'desc',
     };
     const exclude = excludeFranchiseTitles === 'true';
-    return this.titlesService.getUserTitles(userId, options, type, exclude);
+    const favoriteFilter =
+      favorite === 'true' ? true : favorite === 'false' ? false : undefined;
+    return this.titlesService.getUserTitles(
+      userId,
+      options,
+      type,
+      exclude,
+      favoriteFilter,
+    );
+  }
+
+  @Get('user/:userId/favorites')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить только избранные тайтлы пользователя' })
+  @ApiParam({ name: 'userId', example: 1, description: 'ID пользователя' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK', 'OTHER'],
+    description: 'Тип тайтла',
+  })
+  @ApiQuery({
+    name: 'excludeFranchiseTitles',
+    required: false,
+    type: Boolean,
+    example: true,
+    description: 'Исключить тайтлы из франшиз',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['createdAt', 'title', 'rating', 'status'],
+    description: 'Сортировка по полю',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Порядок сортировки',
+  })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedTitlesResponseDto,
+    description: 'Список избранных тайтлов с пагинацией',
+  })
+  getUserFavoriteTitles(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('type') type?: string,
+    @Query('excludeFranchiseTitles') excludeFranchiseTitles?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
+  ) {
+    const options = {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      sortBy,
+      sortOrder: sortOrder as 'asc' | 'desc',
+    };
+    const exclude = excludeFranchiseTitles === 'true';
+    return this.titlesService.getUserTitles(
+      userId,
+      options,
+      type,
+      exclude,
+      true,
+    );
   }
 
   @Post()

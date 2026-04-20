@@ -1,9 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
   IsInt,
+  Matches,
   Min,
   Max,
   MaxLength,
@@ -56,6 +58,43 @@ export class CreateUpdateTitleDto {
   @IsEnum(Status)
   status?: Status;
 
+  @ApiPropertyOptional({ description: 'Избранный тайтл' })
+  @IsOptional()
+  @IsBoolean()
+  favorite?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Дата начала просмотра/прохождения/чтения в формате DD.MM.YYYY',
+    example: '20.04.2026',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{2}\.\d{2}\.\d{4}$/)
+  dateStarted?: string;
+
+  @ApiPropertyOptional({
+    description: 'Дата окончания просмотра/прохождения/чтения в формате DD.MM.YYYY',
+    example: '20.05.2026',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{2}\.\d{2}\.\d{4}$/)
+  dateFinished?: string;
+
+  @ApiPropertyOptional({ description: 'Тайтл отмечен как повторный просмотр/прохождение/чтение' })
+  @IsOptional()
+  @IsBoolean()
+  isRevisit?: boolean;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Количество пересмотров/повторных прохождений',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  revisitCount?: number;
+
   @ApiPropertyOptional({
     example: 8,
     description: 'Оценка пользователя (0-10)',
@@ -72,7 +111,7 @@ export class CreateUpdateTitleDto {
   @MaxLength(500)
   note?: string;
 
-  @ApiPropertyOptional({ description: 'ID франшизы' })
+  @ApiPropertyOptional({ description: 'ID франшизы', example: null })
   @IsOptional()
   @IsInt()
   franchiseId?: number;

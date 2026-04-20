@@ -28,6 +28,7 @@ export class TitlesService {
     options: any = {},
     type?: string,
     excludeFranchiseTitles: boolean = false,
+    favorite?: boolean,
   ) {
     const { skip, take, page, limit, sortBy, sortOrder } =
       createPaginationOptions(options);
@@ -37,6 +38,9 @@ export class TitlesService {
       const where: any = { userId, type: type as any };
       if (excludeFranchiseTitles) {
         where.franchiseId = null;
+      }
+      if (favorite !== undefined) {
+        where.favorite = favorite;
       }
 
       let orderBy: any = { createdAt: 'desc' };
@@ -66,6 +70,8 @@ export class TitlesService {
 
       const items = titles.map((title) => ({
         ...title,
+        dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+        dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
         progressPercent:
           title.totalUnits && title.totalUnits > 0
             ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
@@ -78,6 +84,9 @@ export class TitlesService {
       const where: any = { userId };
       if (excludeFranchiseTitles) {
         where.franchiseId = null;
+      }
+      if (favorite !== undefined) {
+        where.favorite = favorite;
       }
       const [titles, total] = await Promise.all([
         this.prisma.userTitle.findMany({
@@ -92,6 +101,8 @@ export class TitlesService {
 
       const items = titles.map((title) => ({
         ...title,
+        dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+        dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
         progressPercent:
           title.totalUnits && title.totalUnits > 0
             ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
@@ -102,11 +113,44 @@ export class TitlesService {
     }
   }
 
+  private parseDateString(value: string, field: string): Date {
+    const match = /^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$/.exec(value);
+    if (!match) {
+      throw new BadRequestException(`${field} must be in DD.MM.YYYY format`);
+    }
+
+    const [, dayString, monthString, yearString] = match;
+    const day = Number(dayString);
+    const month = Number(monthString) - 1;
+    const year = Number(yearString);
+    const parsed = new Date(Date.UTC(year, month, day));
+
+    if (
+      parsed.getUTCFullYear() !== year ||
+      parsed.getUTCMonth() !== month ||
+      parsed.getUTCDate() !== day
+    ) {
+      throw new BadRequestException(`${field} must be a valid date in DD.MM.YYYY format`);
+    }
+
+    return parsed;
+  }
+
+  private formatDate(date?: Date | null): string | null {
+    if (!date) return null;
+    const d = date instanceof Date ? date : new Date(date);
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const year = d.getUTCFullYear();
+    return `${day}.${month}.${year}`;
+  }
+
   private validateTitleData(
     totalUnits?: number,
     currentUnit?: number,
     rating?: number,
     note?: string,
+    revisitCount?: number,
   ) {
     if (currentUnit !== undefined && currentUnit < 0) {
       throw new BadRequestException('currentUnit cannot be negative');
@@ -124,6 +168,10 @@ export class TitlesService {
       throw new BadRequestException('rating must be between 0 and 10');
     }
 
+    if (revisitCount !== undefined && revisitCount < 0) {
+      throw new BadRequestException('revisitCount cannot be negative');
+    }
+
     if (note && note.length > 500) {
       throw new BadRequestException('note cannot exceed 500 characters');
     }
@@ -135,6 +183,7 @@ export class TitlesService {
       dto.currentUnit,
       dto.rating,
       dto.note,
+      dto.revisitCount,
     );
 
     // Validate franchise title limit
@@ -164,12 +213,20 @@ export class TitlesService {
       status = 'COMPLETED';
     }
 
+    const { dateStarted, dateFinished, ...restDto } = dto as any;
+
     const title = await this.prisma.userTitle.create({
       data: {
-        ...dto,
+        ...restDto,
         userId,
         currentUnit: dto.currentUnit ?? 0,
         status,
+        ...(dateStarted
+          ? { dateStarted: this.parseDateString(dateStarted, 'dateStarted') }
+          : {}),
+        ...(dateFinished
+          ? { dateFinished: this.parseDateString(dateFinished, 'dateFinished') }
+          : {}),
       },
     });
 
@@ -183,7 +240,11 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return title;
+    return {
+      ...title,
+      dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+      dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
+    };
   }
 
   async updateTitle(
@@ -203,8 +264,9 @@ export class TitlesService {
     const currentUnit = dto.currentUnit ?? existing.currentUnit;
     const rating = dto.rating ?? existing.rating;
     const note = dto.note ?? existing.note;
+    const revisitCount = dto.revisitCount ?? existing.revisitCount;
 
-    this.validateTitleData(totalUnits!, currentUnit!, rating!, note!);
+    this.validateTitleData(totalUnits!, currentUnit!, rating!, note!, revisitCount);
 
     let status = dto.status ?? existing.status;
 
@@ -217,11 +279,19 @@ export class TitlesService {
       status = 'COMPLETED';
     }
 
+    const { dateStarted, dateFinished, ...restDto } = dto as any;
+
     const updated = await this.prisma.userTitle.update({
       where: { id: titleId },
       data: {
-        ...dto,
+        ...restDto,
         status,
+        ...(dateStarted
+          ? { dateStarted: this.parseDateString(dateStarted, 'dateStarted') }
+          : {}),
+        ...(dateFinished
+          ? { dateFinished: this.parseDateString(dateFinished, 'dateFinished') }
+          : {}),
       },
     });
 
@@ -236,7 +306,11 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return updated;
+    return {
+      ...updated,
+      dateStarted: updated.dateStarted ? this.formatDate(updated.dateStarted) : null,
+      dateFinished: updated.dateFinished ? this.formatDate(updated.dateFinished) : null,
+    };
   }
 
   async deleteTitle(userId: number, titleId: number) {
@@ -271,6 +345,10 @@ export class TitlesService {
 
     if (filters.type) {
       where.type = filters.type;
+    }
+
+    if (filters.favorite !== undefined) {
+      where.favorite = filters.favorite;
     }
 
     if (filters.status) {
@@ -318,6 +396,8 @@ export class TitlesService {
 
     const items = titles.map((title) => ({
       ...title,
+      dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+      dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
       progressPercent:
         title.totalUnits && title.totalUnits > 0
           ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)

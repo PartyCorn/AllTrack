@@ -1,0 +1,9 @@
+-- AlterEnum
+ALTER TYPE "TitleType" ADD VALUE 'OTHER';
+
+-- AlterTable
+ALTER TABLE "UserTitle" ADD COLUMN     "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "dateFinished" TIMESTAMP(3),
+ADD COLUMN     "favorite" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isRewatch" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "rewatchCount" INTEGER NOT NULL DEFAULT 0;
