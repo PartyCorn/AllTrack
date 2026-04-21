@@ -185,4 +185,34 @@ export class FranchisesController {
       Number(titleId),
     );
   }
+
+  @Post(':id/collaborators/:friendId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Добавить коллаборатора к франшизе' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiParam({ name: 'friendId', example: 2, description: 'ID друга для приглашения' })
+  @ApiResponse({ status: 200, type: FranchiseDto, description: 'Обновленная франшиза' })
+  addCollaborator(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    return this.franchisesService.addCollaborator(req.user.userId, id, friendId);
+  }
+
+  @Delete(':id/collaborators/:collaboratorId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Удалить коллаборатора из франшизы' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiParam({ name: 'collaboratorId', example: 2, description: 'ID коллаборатора' })
+  @ApiResponse({ status: 200, type: FranchiseDto, description: 'Обновленная франшиза' })
+  removeCollaborator(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('collaboratorId', ParseIntPipe) collaboratorId: number,
+  ) {
+    return this.franchisesService.removeCollaborator(req.user.userId, id, collaboratorId);
+  }
 }

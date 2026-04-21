@@ -21,6 +21,8 @@ model User {
 
   titles        UserTitle[]
   franchises    Franchise[]
+  titleCollaborations UserTitleCollaborator[] @relation("UserTitleCollaborators")
+  franchiseCollaborations FranchiseCollaborator[] @relation("FranchiseCollaborators")
   achievements  UserAchievement[]
   notifications Notification[]
   sentFriendRequests    Friendship[] @relation("FriendshipRequester")
@@ -57,6 +59,8 @@ model UserTitle {
   franchiseId   Int?
   franchise     Franchise? @relation(fields: [franchiseId], references: [id])
 
+  collaborators UserTitleCollaborator[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -69,10 +73,11 @@ model Franchise {
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
 
-  titles      UserTitle[]
+  titles        UserTitle[]
+  collaborators FranchiseCollaborator[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([userId])
 }
@@ -149,6 +154,34 @@ model Comment {
 
   @@index([profileId])
   @@index([authorId])
+}
+
+model UserTitleCollaborator {
+  id        Int   @id @default(autoincrement())
+  titleId   Int
+  userId    Int
+
+  title     UserTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  user      User      @relation("UserTitleCollaborators", fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt  DateTime  @default(now())
+
+  @@unique([titleId, userId])
+  @@index([userId])
+}
+
+model FranchiseCollaborator {
+  id          Int   @id @default(autoincrement())
+  franchiseId Int
+  userId      Int
+
+  franchise   Franchise @relation(fields: [franchiseId], references: [id], onDelete: Cascade)
+  user        User      @relation("FranchiseCollaborators", fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt    DateTime  @default(now())
+
+  @@unique([franchiseId, userId])
+  @@index([userId])
 }
 
 enum TitleType {

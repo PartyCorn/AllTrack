@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -33,9 +34,31 @@ export class TitlesService {
     const { skip, take, page, limit, sortBy, sortOrder } =
       createPaginationOptions(options);
 
+    // Get own titles + collaborated titles
+    const collaboratedTitleIds = (await this.prisma.userTitleCollaborator.findMany({
+      where: { userId },
+      select: { titleId: true },
+    })).map(c => c.titleId);
+
+    // Get titles from franchises where user is a collaborator
+    const collaboratedFranchiseIds = (await this.prisma.franchiseCollaborator.findMany({
+      where: { userId },
+      select: { franchiseId: true },
+    })).map(c => c.franchiseId);
+
     if (type) {
       // Return specific type with pagination
-      const where: any = { userId, type: type as any };
+      const where: any = {
+        OR: [
+          { userId },
+          { id: { in: collaboratedTitleIds } },
+          {
+            franchiseId: { in: collaboratedFranchiseIds },
+            userId: { not: userId }
+          }
+        ],
+        type: type as any,
+      };
       if (excludeFranchiseTitles) {
         where.franchiseId = null;
       }
@@ -68,20 +91,23 @@ export class TitlesService {
         this.prisma.userTitle.count({ where }),
       ]);
 
-      const items = titles.map((title) => ({
-        ...title,
-        dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
-        dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
-        progressPercent:
-          title.totalUnits && title.totalUnits > 0
-            ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
-            : 0,
-      }));
+      const items = await Promise.all(titles.map((title) =>
+        this.formatTitleResponse(title, userId),
+      ));
 
       return createPaginatedResult(items, total, page, limit);
     } else {
       // Return all titles with pagination
-      const where: any = { userId };
+      const where: any = {
+        OR: [
+          { userId },
+          { id: { in: collaboratedTitleIds } },
+          {
+            franchiseId: { in: collaboratedFranchiseIds },
+            userId: { not: userId }
+          }
+        ],
+      };
       if (excludeFranchiseTitles) {
         where.franchiseId = null;
       }
@@ -99,15 +125,9 @@ export class TitlesService {
         this.prisma.userTitle.count({ where }),
       ]);
 
-      const items = titles.map((title) => ({
-        ...title,
-        dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
-        dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
-        progressPercent:
-          title.totalUnits && title.totalUnits > 0
-            ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
-            : 0,
-      }));
+      const items = await Promise.all(titles.map((title) =>
+        this.formatTitleResponse(title, userId),
+      ));
 
       return createPaginatedResult(items, total, page, limit);
     }
@@ -240,11 +260,7 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return {
-      ...title,
-      dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
-      dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
-    };
+    return this.formatTitleResponse(title, userId);
   }
 
   async updateTitle(
@@ -306,11 +322,7 @@ export class TitlesService {
     // Check for achievements
     await this.achievementsService.checkAndAwardAchievements(userId);
 
-    return {
-      ...updated,
-      dateStarted: updated.dateStarted ? this.formatDate(updated.dateStarted) : null,
-      dateFinished: updated.dateFinished ? this.formatDate(updated.dateFinished) : null,
-    };
+    return this.formatTitleResponse(updated, userId);
   }
 
   async deleteTitle(userId: number, titleId: number) {
@@ -318,15 +330,23 @@ export class TitlesService {
       where: { id: titleId },
     });
 
-    if (!title || title.userId !== userId) {
+    if (!title) {
       throw new NotFoundException('Title not found');
     }
 
-    // await this.gamificationService.addXp(userId, -10)
+    // Если пользователь создатель, удаляем полностью
+    if (title.userId === userId) {
+      return this.prisma.userTitle.delete({
+        where: { id: titleId },
+      });
+    }
 
-    return this.prisma.userTitle.delete({
-      where: { id: titleId },
+    // Иначе удаляем только коллаборатора из списка
+    await this.prisma.userTitleCollaborator.deleteMany({
+      where: { titleId, userId },
     });
+
+    return this.getTitleDetail(titleId, userId);
   }
 
   async searchTitles(filters: any, options: any) {
@@ -394,16 +414,120 @@ export class TitlesService {
       this.prisma.userTitle.count({ where }),
     ]);
 
-    const items = titles.map((title) => ({
+    const items = await Promise.all(titles.map((title) =>
+      this.formatTitleResponse(title, filters.userId),
+    ));
+
+    return createPaginatedResult(items, total, page, limit);
+  }
+
+  private async formatTitleResponse(title: any, currentUserId?: number) {
+    const collaborators = await this.prisma.userTitleCollaborator.findMany({
+      where: { titleId: title.id },
+      include: { user: true },
+    });
+
+    return {
       ...title,
       dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
       dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
+      isOwner: currentUserId ? title.userId === currentUserId : false,
+      collaborators: collaborators.map((collab) => ({
+        id: collab.user.id,
+        nickname: collab.user.nickname,
+        avatarUrl: collab.user.avatarUrl,
+        level: collab.user.level,
+        joinedAt: this.formatDate(collab.joinedAt),
+      })),
       progressPercent:
         title.totalUnits && title.totalUnits > 0
           ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
           : 0,
-    }));
+    };
+  }
 
-    return createPaginatedResult(items, total, page, limit);
+  async addCollaborator(userId: number, titleId: number, friendId: number) {
+    const title = await this.prisma.userTitle.findUnique({
+      where: { id: titleId },
+    });
+
+    if (!title || title.userId !== userId) {
+      throw new NotFoundException('Title not found');
+    }
+
+    // Проверяем, что друг существует и они друзья
+    const friendship = await this.prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { requesterId: userId, addresseeId: friendId, status: 'ACCEPTED' },
+          { requesterId: friendId, addresseeId: userId, status: 'ACCEPTED' },
+        ],
+      },
+    });
+
+    if (!friendship) {
+      throw new ForbiddenException('You are not friends with this user');
+    }
+
+    // Проверяем, не добавлен ли уже
+    const existing = await this.prisma.userTitleCollaborator.findUnique({
+      where: { titleId_userId: { titleId, userId: friendId } },
+    });
+
+    if (existing) {
+      throw new BadRequestException('User is already a collaborator');
+    }
+
+    await this.prisma.userTitleCollaborator.create({
+      data: {
+        titleId,
+        userId: friendId,
+      },
+    });
+
+    return this.getTitleDetail(titleId, userId);
+  }
+
+  async removeCollaborator(userId: number, titleId: number, collaboratorId: number) {
+    const title = await this.prisma.userTitle.findUnique({
+      where: { id: titleId },
+    });
+
+    if (!title) {
+      throw new NotFoundException('Title not found');
+    }
+
+    // Только создатель или сам коллаборатор могут его удалить
+    if (title.userId !== userId && collaboratorId !== userId) {
+      throw new ForbiddenException('You cannot remove this collaborator');
+    }
+
+    // Проверяем, существует ли коллаборатор
+    const collaborator = await this.prisma.userTitleCollaborator.findUnique({
+      where: { titleId_userId: { titleId, userId: collaboratorId } },
+    });
+
+    if (!collaborator) {
+      throw new NotFoundException('Collaborator not found');
+    }
+
+    await this.prisma.userTitleCollaborator.delete({
+      where: { titleId_userId: { titleId, userId: collaboratorId } },
+    });
+
+    return this.getTitleDetail(titleId, userId);
+  }
+
+  async getTitleDetail(titleId: number, userId?: number) {
+    const title = await this.prisma.userTitle.findUnique({
+      where: { id: titleId },
+      include: { franchise: true },
+    });
+
+    if (!title) {
+      throw new NotFoundException('Title not found');
+    }
+
+    return this.formatTitleResponse(title, userId);
   }
 }

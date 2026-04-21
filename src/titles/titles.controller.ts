@@ -338,4 +338,34 @@ export class TitlesController {
   deleteTitle(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     return this.titlesService.deleteTitle(req.user.userId, id);
   }
+
+  @Post(':id/collaborators/:friendId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Добавить коллаборатора к тайтлу' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID тайтла' })
+  @ApiParam({ name: 'friendId', example: 2, description: 'ID друга для приглашения' })
+  @ApiResponse({ status: 200, type: TitleDto, description: 'Обновленный тайтл' })
+  addCollaborator(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    return this.titlesService.addCollaborator(req.user.userId, id, friendId);
+  }
+
+  @Delete(':id/collaborators/:collaboratorId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Удалить коллаборатора из тайтла' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID тайтла' })
+  @ApiParam({ name: 'collaboratorId', example: 2, description: 'ID коллаборатора' })
+  @ApiResponse({ status: 200, type: TitleDto, description: 'Обновленный тайтл' })
+  removeCollaborator(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('collaboratorId', ParseIntPipe) collaboratorId: number,
+  ) {
+    return this.titlesService.removeCollaborator(req.user.userId, id, collaboratorId);
+  }
 }
