@@ -25,6 +25,33 @@ import { FriendDto } from './dto/friend.dto';
 export class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить список друзей' })
+  @ApiResponse({ status: 200, description: 'Список друзей', type: [FriendDto] })
+  getFriends(@Req() req: any) {
+    return this.friendsService.getFriends(req.user.userId);
+  }
+
+  @Get('requests/incoming')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить входящие заявки в друзья' })
+  @ApiResponse({ status: 200, description: 'Список заявок', type: [FriendDto] })
+  getFriendRequests(@Req() req: any) {
+    return this.friendsService.getFriendRequests(req.user.userId);
+  }
+
+  @Get('requests/outgoing')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить исходящие заявки в друзья' })
+  @ApiResponse({ status: 200, description: 'Список исходящих заявок', type: [FriendDto] })
+  getOutgoingFriendRequests(@Req() req: any) {
+    return this.friendsService.getOutgoingFriendRequests(req.user.userId);
+  }
+
   @Post('request/:nickname')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -60,32 +87,5 @@ export class FriendsController {
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
     return this.friendsService.removeFriend(req.user.userId, friendId);
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить список друзей' })
-  @ApiResponse({ status: 200, description: 'Список друзей', type: [FriendDto] })
-  getFriends(@Req() req: any) {
-    return this.friendsService.getFriends(req.user.userId);
-  }
-
-  @Get('requests/incoming')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить входящие заявки в друзья' })
-  @ApiResponse({ status: 200, description: 'Список заявок', type: [FriendDto] })
-  getFriendRequests(@Req() req: any) {
-    return this.friendsService.getFriendRequests(req.user.userId);
-  }
-
-  @Get('requests/outgoing')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить исходящие заявки в друзья' })
-  @ApiResponse({ status: 200, description: 'Список исходящих заявок', type: [FriendDto] })
-  getOutgoingFriendRequests(@Req() req: any) {
-    return this.friendsService.getOutgoingFriendRequests(req.user.userId);
   }
 }

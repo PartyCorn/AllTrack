@@ -82,19 +82,6 @@ export class FranchisesController {
     return this.franchisesService.getUserFranchises(Number(userId), options);
   }
 
-  @Get(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Получить франшизу по ID с тайтлами' })
-  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
-  @ApiResponse({
-    status: 200,
-    type: FranchiseWithTitlesDto,
-    description: 'Франшиза с тайтлами',
-  })
-  getFranchiseById(@Param('id', ParseIntPipe) id: number) {
-    return this.franchisesService.getFranchiseById(id);
-  }
-
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -110,6 +97,19 @@ export class FranchisesController {
   })
   createFranchise(@Req() req: any, @Body() dto: CreateUpdateFranchiseDto) {
     return this.franchisesService.createFranchise(req.user.userId, dto);
+  }
+
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Получить франшизу по ID с тайтлами' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID франшизы' })
+  @ApiResponse({
+    status: 200,
+    type: FranchiseWithTitlesDto,
+    description: 'Франшиза с тайтлами',
+  })
+  getFranchiseById(@Param('id', ParseIntPipe) id: number) {
+    return this.franchisesService.getFranchiseById(id);
   }
 
   @Put(':id')

@@ -1,98 +1,248 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS">
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<h1 align="center">AllTrack</h1>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <strong>Система каталогизации медиаконтента</strong> — бэкенд для отслеживания фильмов, сериалов, аниме, игр, книг и другого цифрового контента с поддержкой полного CRUD.
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+  <a href="https://github.com/anomalyco/AllTrack/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/anomalyco/AllTrack?style=flat-square" alt="License">
+  </a>
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+### Возможности
+
+- 📚 Управление тайтлами (фильмы, сериалы, аниме, игры, книги, другое)
+- 🎯 Отслеживание статуса просмотра/прохождения
+- ⭐ Избранное и оценки
+- 🎮 Франшизы и связывание тайтлов
+- 👥 Друзья и социальные функции
+- 🔔 Уведомления
+- 🏆 Система достижений и уровней профиля
+- 💬 Комментарии на профилях
+
+---
+
+## Технологический стек
+
+| Категория | Технология |
+|-----------|------------|
+| **Backend** | NestJS |
+| **ORM** | Prisma |
+| **Database** | PostgreSQL |
+| **Authentication** | JWT (Passport) |
+| **API Docs** | Swagger |
+| **Validation** | class-validator |
+| **Queue** | Bull + Redis |
+| **Scheduling** | NestJS Schedule |
+
+---
+
+## Требования
+
+- Node.js 18+
+- PostgreSQL 14+
+- Redis (для очередей и real-time уведомлений)
+
+---
+
+## Установка и запуск
+
+### 1. Клонирование репозитория
 
 ```bash
-$ npm install
+git clone https://github.com/PartyCorn/AllTrack.git
+cd AllTrack
 ```
 
-## Compile and run the project
+### 2. Установка зависимостей
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Настройка базы данных PostgreSQL
+
+#### Способ А: Локальный PostgreSQL
+
+1. Установите [PostgreSQL](https://www.postgresql.org/download/) (версия 14+) или [pgAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
+
+2. Создайте базу данных:
+   ```bash
+   createdb alltrack
+   ```
+
+3. Создайте пользователя (или используйте существующего):
+   ```bash
+   psql -U postgres -c "CREATE USER postgres WITH PASSWORD 'password';"
+   psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE alltrack TO postgres;"
+   ```
+
+4. Настройте подключение в `.env`:
+   ```env
+   DATABASE_URL="postgresql://postgres:password@localhost:5432/alltrack"
+   JWT_SECRET=your-secret-key
+   ```
+
+#### Способ Б: Docker
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker run -d \
+  --name alltrack-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=alltrack \
+  -p 5432:5432 \
+  postgres:14
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 4. Применение миграций и генерация клиента
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Генерация Prisma Client
+npx prisma generate
+
+# Применение миграций Prisma
+npx prisma migrate dev --name init
+
+# Заполнение базы достижениями
+npm run seed
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Запуск приложения
 
-## Resources
+```bash
+# Режим разработки
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Или просто
+npm run start
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Приложение будет доступно по адресу: `http://localhost:3000`
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## API документация
 
-## Stay in touch
+После запуска документация доступна по адресу: `http://localhost:3000/docs`
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## Структура проекта
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```
+src/
+├── auth/              # Аутентификация (JWT)
+├── achievements/      # Система достижений
+├── comments/          # Комментарии к профилям
+├── common/            # Общие утилиты, guards, DTO
+├── config/            # Конфигурация
+├── covers/            # Поиск обложек
+├── franchises/        # Франшизы
+├── friends/           # Друзья
+├── gamification/      # Геймификация (XP, уровни)
+├── notifications/     # Уведомления
+├── prisma/            # Prisma service
+├── titles/            # Тайтлы (основная сущность)
+└── users/             # Пользователи
+```
+
+---
+
+## Основные эндпоинты
+
+| Метод | Роут | Описание |
+|-------|------|----------|
+| **Auth** |||
+| `POST` | `/auth/register` | Регистрация |
+| `POST` | `/auth/login` | Вход |
+| **Achievements** |||
+| `GET` | `/achievements` | Все достижения |
+| `GET` | `/achievements/:nickname` | Достижения пользователя |
+| **Comments** |||
+| `POST` | `/comments/profile/:profileId` | Оставить комментарий |
+| `GET` | `/comments/profile/:profileId` | Комментарии профиля |
+| `PUT` | `/comments/:profileId` | Редактировать комментарий |
+| `DELETE` | `/comments/:profileId` | Удалить комментарий |
+| **Covers** |||
+| `GET` | `/covers/search` | Поиск обложек |
+| **Franchises** |||
+| `GET` | `/titles/user/:userId` | Франшизы пользователя |
+| `POST` | `/titles` | Создать франшизу |
+| `GET` | `/titles/:id` | Франшиза по ID |
+| `PUT` | `/titles/:id` | Обновить франшизу |
+| `DELETE` | `/titles/:id` | Удалить франшизу |
+| `POST` | `/titles` | Прикрепить тайтл |
+| `DELETE` | `/titles/:id` | Открепить тайтл |
+| **Friends** |||
+| `GET` | `/friends` | Список друзей |
+| `GET` | `/friends/requests/incoming` | Входящие заявки |
+| `GET` | `/friends/requests/outcoming` | Исходящие заявки |
+| `POST` | `/friends/request/:nickname` | Отправить заявку |
+| `PUT` | `/friends/accept/:friendId` | Принять заявку |
+| `DELETE` | `/friends/:friendId` | Удалить друга или отклонить заявку |
+| **Notifications** |||
+| `GET` | `/notifications/me` | Уведомления |
+| `PUT` | `/notifications/me/read` | Прочитать выборочно |
+| `PUT` | `/notifications/me/read-all` | Прочитать все |
+| `GET` | `/notifications/me/stream` | Real-time SSE |
+| **Titles** |||
+| `GET` | `/titles/search` | Поиск тайтлов с фильтрами |
+| `GET` | `/titles/user/:userId` | Тайтлы пользователя |
+| `GET` | `/titles/user/:userId/favorites` | Только избранные тайтлы пользователя |
+| `POST` | `/titles` | Создать франшизу |
+| `GET` | `/titles/:id` | Франшиза по ID |
+| `PUT` | `/titles/:id` | Обновить тайтл |
+| `DELETE` | `/titles/:id` | Удалить тайтл |
+| **Users** |||
+| `GET` | `/users/me` | Профиль текущего пользователя |
+| `PUT` | `/users/me/edit` | Редактирование профиля |
+| `GET` | `/users/:nickname` | Публичный профиль |
+| `GET` | `/users/me/export` | Экспорт данных пользователя |
+
+---
+
+## Доступные npm-скрипты
+
+```bash
+npm run start           # Запуск в production
+npm run start:dev       # Режим разработки (hot-reload)
+npm run start:debug     # Режим отладки
+npm run build           # Сборка проекта
+npm run lint            # Линтинг и исправление
+npm run test            # Unit тесты
+npm run test:cov       # Покрытие тестами
+npm run test:e2e        # E2E тесты
+npm run seed            # Заполнение БД (achievements)
+```
+
+---
+
+## Переменные окружения
+
+| Переменная | Описание | По умолчанию |
+|------------|----------|--------------|
+| `DATABASE_URL` | Строка подключения к PostgreSQL | `postgresql://...` |
+| `JWT_SECRET` | Секретный ключ для JWT | `super-secret-key` |
+
+---
+
+## Лицензия
+
+Только для просмотра, копирование и использование в своих целях запрещено. Полный текст — в файле [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  Сделано с ❤️<br>&copy Курилов Андрей - 2026
+</p>
