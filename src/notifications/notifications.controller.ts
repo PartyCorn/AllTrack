@@ -49,6 +49,16 @@ export class NotificationsController {
     return this.notificationsService.markNotificationsAsRead(requesterId, body.ids);
   }
 
+  @Put('me/read-all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Отметить все уведомления как прочитанные' })
+  @ApiResponse({ status: 200, description: 'Все уведомления отмечены как прочитанные' })
+  markAllNotificationsAsRead(@Req() req: any) {
+    const requesterId = req.user.userId;
+    return this.notificationsService.markAllNotificationsAsRead(requesterId);
+  }
+
   @Sse('me/stream')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

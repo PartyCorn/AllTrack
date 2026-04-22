@@ -71,12 +71,21 @@ export class FriendsController {
     return this.friendsService.getFriends(req.user.userId);
   }
 
-  @Get('requests')
+  @Get('requests/incoming')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить входящие заявки в друзья' })
   @ApiResponse({ status: 200, description: 'Список заявок', type: [FriendDto] })
   getFriendRequests(@Req() req: any) {
     return this.friendsService.getFriendRequests(req.user.userId);
+  }
+
+  @Get('requests/outgoing')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить исходящие заявки в друзья' })
+  @ApiResponse({ status: 200, description: 'Список исходящих заявок', type: [FriendDto] })
+  getOutgoingFriendRequests(@Req() req: any) {
+    return this.friendsService.getOutgoingFriendRequests(req.user.userId);
   }
 }

@@ -307,6 +307,21 @@ export class TitlesController {
     return this.titlesService.createTitle(req.user.userId, dto);
   }
 
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить тайтл по ID' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID тайтла' })
+  @ApiResponse({ status: 200, type: TitleDto, description: 'Тайтл' })
+  @ApiResponse({ status: 404, description: 'Тайтл не найден' })
+  getTitleById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.userId;
+    return this.titlesService.getTitleById(id, userId);
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

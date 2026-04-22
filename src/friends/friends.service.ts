@@ -157,6 +157,20 @@ export class FriendsService {
     return requests.map((r) => r.requester);
   }
 
+  async getOutgoingFriendRequests(userId: number) {
+    const requests = await this.prisma.friendship.findMany({
+      where: {
+        requesterId: userId,
+        status: 'PENDING',
+      },
+      include: {
+        addressee: { select: { id: true, nickname: true, avatarUrl: true } },
+      },
+    });
+
+    return requests.map((r) => r.addressee);
+  }
+
   private async getUserNickname(userId: number): Promise<string> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

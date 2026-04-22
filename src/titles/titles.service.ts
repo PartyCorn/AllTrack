@@ -247,6 +247,42 @@ export class TitlesService {
     };
   }
 
+  async getTitleById(titleId: number, userId?: number) {
+    const title = await this.prisma.userTitle.findUnique({
+      where: { id: titleId },
+      include: {
+        franchise: true,
+        user: { select: { id: true, nickname: true, avatarUrl: true } },
+      },
+    });
+
+    if (!title) {
+      throw new NotFoundException('Title not found');
+    }
+
+    const isOwner = title.userId === userId;
+
+    if (!isOwner) {
+      const owner = await this.prisma.user.findUnique({
+        where: { id: title.userId },
+        select: { isPrivate: true },
+      });
+      if (owner?.isPrivate) {
+        throw new NotFoundException('Title not found');
+      }
+    }
+
+    return {
+      ...title,
+      dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+      dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
+      progressPercent:
+        title.totalUnits && title.totalUnits > 0
+          ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
+          : 0,
+    };
+  }
+
   async updateTitle(
     userId: number,
     titleId: number,
@@ -387,7 +423,10 @@ export class TitlesService {
       this.prisma.userTitle.findMany({
         where,
         orderBy,
-        include: { franchise: true, user: true },
+        include: {
+          franchise: true,
+          user: { select: { id: true, nickname: true, avatarUrl: true } },
+        },
         skip,
         take,
       }),
