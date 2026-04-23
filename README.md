@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/anomalyco/AllTrack/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/anomalyco/AllTrack?style=flat-square" alt="License">
+  <a href="https://github.com/PartyCorn/AllTrack/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/PartyCorn/AllTrack?style=flat-square" alt="License">
   </a>
 </p>
 
@@ -35,23 +35,21 @@
 ## Технологический стек
 
 | Категория | Технология |
-|-----------|------------|
-| **Backend** | NestJS |
-| **ORM** | Prisma |
-| **Database** | PostgreSQL |
-| **Authentication** | JWT (Passport) |
-| **API Docs** | Swagger |
-| **Validation** | class-validator |
-| **Queue** | Bull + Redis |
-| **Scheduling** | NestJS Schedule |
+| ------------------ | -------------------- |
+| **Backend**        | NestJS               |
+| **ORM**            | Prisma               |
+| **Database**       | PostgreSQL           |
+| **Authentication** | JWT (Passport)       |
+| **API Docs**       | Swagger              |
+| **Validation**     | class-validator      |
+| **Scheduling**     | NestJS Schedule      |
 
 ---
 
 ## Требования
 
-- Node.js 18+
+- Node.js 20.19+ (для поддержки Prisma)
 - PostgreSQL 14+
-- Redis (для очередей и real-time уведомлений)
 
 ---
 
@@ -75,19 +73,19 @@ npm install
 #### Способ А: Локальный PostgreSQL
 
 1. Установите [PostgreSQL](https://www.postgresql.org/download/) (версия 14+) или [pgAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
-
 2. Создайте базу данных:
+   
    ```bash
    createdb alltrack
    ```
-
 3. Создайте пользователя (или используйте существующего):
+   
    ```bash
    psql -U postgres -c "CREATE USER postgres WITH PASSWORD 'password';"
    psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE alltrack TO postgres;"
    ```
-
 4. Настройте подключение в `.env`:
+   
    ```env
    DATABASE_URL="postgresql://postgres:password@localhost:5432/alltrack"
    JWT_SECRET=your-secret-key
@@ -147,12 +145,12 @@ src/
 ├── comments/          # Комментарии к профилям
 ├── common/            # Общие утилиты, guards, DTO
 ├── config/            # Конфигурация
-├── covers/            # Поиск обложек
 ├── franchises/        # Франшизы
 ├── friends/           # Друзья
 ├── gamification/      # Геймификация (XP, уровни)
+├── kinopoisk/         # Поиск по Кинопоиску
 ├── notifications/     # Уведомления
-├── prisma/            # Prisma service
+├── prisma/            # Сервис Prisma
 ├── titles/            # Тайтлы (основная сущность)
 └── users/             # Пользователи
 ```
@@ -161,54 +159,55 @@ src/
 
 ## Основные эндпоинты
 
-| Метод | Роут | Описание |
-|-------|------|----------|
-| **Auth** |||
-| `POST` | `/auth/register` | Регистрация |
-| `POST` | `/auth/login` | Вход |
-| **Achievements** |||
-| `GET` | `/achievements` | Все достижения |
-| `GET` | `/achievements/:nickname` | Достижения пользователя |
-| **Comments** |||
-| `POST` | `/comments/profile/:profileId` | Оставить комментарий |
-| `GET` | `/comments/profile/:profileId` | Комментарии профиля |
-| `PUT` | `/comments/:profileId` | Редактировать комментарий |
-| `DELETE` | `/comments/:profileId` | Удалить комментарий |
-| **Covers** |||
-| `GET` | `/covers/search` | Поиск обложек |
-| **Franchises** |||
-| `GET` | `/titles/user/:userId` | Франшизы пользователя |
-| `POST` | `/titles` | Создать франшизу |
-| `GET` | `/titles/:id` | Франшиза по ID |
-| `PUT` | `/titles/:id` | Обновить франшизу |
-| `DELETE` | `/titles/:id` | Удалить франшизу |
-| `POST` | `/titles` | Прикрепить тайтл |
-| `DELETE` | `/titles/:id` | Открепить тайтл |
-| **Friends** |||
-| `GET` | `/friends` | Список друзей |
-| `GET` | `/friends/requests/incoming` | Входящие заявки |
-| `GET` | `/friends/requests/outcoming` | Исходящие заявки |
-| `POST` | `/friends/request/:nickname` | Отправить заявку |
-| `PUT` | `/friends/accept/:friendId` | Принять заявку |
-| `DELETE` | `/friends/:friendId` | Удалить друга или отклонить заявку |
-| **Notifications** |||
-| `GET` | `/notifications/me` | Уведомления |
-| `PUT` | `/notifications/me/read` | Прочитать выборочно |
-| `PUT` | `/notifications/me/read-all` | Прочитать все |
-| `GET` | `/notifications/me/stream` | Real-time SSE |
-| **Titles** |||
-| `GET` | `/titles/search` | Поиск тайтлов с фильтрами |
-| `GET` | `/titles/user/:userId` | Тайтлы пользователя |
-| `GET` | `/titles/user/:userId/favorites` | Только избранные тайтлы пользователя |
-| `POST` | `/titles` | Создать франшизу |
-| `GET` | `/titles/:id` | Франшиза по ID |
-| `PUT` | `/titles/:id` | Обновить тайтл |
-| `DELETE` | `/titles/:id` | Удалить тайтл |
-| **Users** |||
-| `GET` | `/users/me` | Профиль текущего пользователя |
-| `PUT` | `/users/me/edit` | Редактирование профиля |
-| `GET` | `/users/:nickname` | Публичный профиль |
-| `GET` | `/users/me/export` | Экспорт данных пользователя |
+| Метод        | Роут                         | Описание                                                      |
+| ----------------- | -------------------------------- | --------------------------------------------------------------------- |
+| **Авторизация**          |                                  |                                                                       |
+| `POST`            | `/auth/register`                 | Регистрация                                                |
+| `POST`            | `/auth/login`                    | Вход                                                              |
+| **Достижения**  |                                  |                                                                       |
+| `GET`             | `/achievements`                  | Все достижения                                           |
+| `GET`             | `/achievements/:nickname`        | Достижения пользователя                         |
+| **Комментарии**      |                                  |                                                                       |
+| `POST`            | `/comments/profile/:profileId`   | Оставить комментарий                               |
+| `GET`             | `/comments/profile/:profileId`   | Комментарии профиля                                 |
+| `PUT`             | `/comments/:profileId`           | Редактировать комментарий                     |
+| `DELETE`          | `/comments/:profileId`           | Удалить комментарий                                 |
+| **Франшизы**    |                                  |                                                                       |
+| `GET`             | `/titles/user/:userId`           | Франшизы пользователя                             |
+| `POST`            | `/titles`                        | Создать франшизу                                       |
+| `GET`             | `/titles/:id`                    | Франшиза по ID                                              |
+| `PUT`             | `/titles/:id`                    | Обновить франшизу                                     |
+| `DELETE`          | `/titles/:id`                    | Удалить франшизу                                       |
+| `POST`            | `/titles`                        | Прикрепить тайтл                                       |
+| `DELETE`          | `/titles/:id`                    | Открепить тайтл                                         |
+| **Друзья**       |                                  |                                                                       |
+| `GET`             | `/friends`                       | Список друзей                                             |
+| `GET`             | `/friends/requests/incoming`     | Входящие заявки                                         |
+| `GET`             | `/friends/requests/outcoming`    | Исходящие заявки                                       |
+| `POST`            | `/friends/request/:nickname`     | Отправить заявку                                       |
+| `PUT`             | `/friends/accept/:friendId`      | Принять заявку                                           |
+| `DELETE`          | `/friends/:friendId`             | Удалить друга или отклонить заявку      |
+| **Кинопоиск**        |                                  |                                                                       |
+| `GET`             | `/kinopoisk/search`                 | Поиск по названию                                             |
+| `GET`             | `/kinopoisk/:id/seasons`                 | Получить сезоны и эпизоды                                             |
+| **Уведомления** |                                  |                                                                       |
+| `GET`             | `/notifications/me`              | Уведомления                                                |
+| `PUT`             | `/notifications/me/read`         | Прочитать выборочно                                 |
+| `PUT`             | `/notifications/me/read-all`     | Прочитать все                                             |
+| `GET`             | `/notifications/me/stream`       | Real-time SSE                                                         |
+| **Тайтлы**        |                                  |                                                                       |
+| `GET`             | `/titles/search`                 | Поиск тайтлов с фильтрами                       |
+| `GET`             | `/titles/user/:userId`           | Тайтлы пользователя                                 |
+| `GET`             | `/titles/user/:userId/favorites` | Только избранные тайтлы пользователя |
+| `POST`            | `/titles`                        | Создать франшизу                                       |
+| `GET`             | `/titles/:id`                    | Франшиза по ID                                              |
+| `PUT`             | `/titles/:id`                    | Обновить тайтл                                           |
+| `DELETE`          | `/titles/:id`                    | Удалить тайтл                                             |
+| **Пользователи**         |                                  |                                                                       |
+| `GET`             | `/users/me`                      | Профиль текущего пользователя              |
+| `PUT`             | `/users/me/edit`                 | Редактирование профиля                           |
+| `GET`             | `/users/:nickname`               | Публичный профиль                                     |
+| `GET`             | `/users/me/export`               | Экспорт данных пользователя                  |
 
 ---
 
@@ -221,7 +220,7 @@ npm run start:debug     # Режим отладки
 npm run build           # Сборка проекта
 npm run lint            # Линтинг и исправление
 npm run test            # Unit тесты
-npm run test:cov       # Покрытие тестами
+npm run test:cov        # Покрытие тестами
 npm run test:e2e        # E2E тесты
 npm run seed            # Заполнение БД (achievements)
 ```
@@ -230,10 +229,10 @@ npm run seed            # Заполнение БД (achievements)
 
 ## Переменные окружения
 
-| Переменная | Описание | По умолчанию |
-|------------|----------|--------------|
-| `DATABASE_URL` | Строка подключения к PostgreSQL | `postgresql://...` |
-| `JWT_SECRET` | Секретный ключ для JWT | `super-secret-key` |
+| Переменная | Описание                                  | По умолчанию |
+| -------------------- | ------------------------------------------------- | ----------------------- |
+| `DATABASE_URL`       | Строка подключения к PostgreSQL | `postgresql://...`      |
+| `JWT_SECRET`         | Секретный ключ для JWT            | `super-secret-key`      |
 
 ---
 
@@ -246,3 +245,4 @@ npm run seed            # Заполнение БД (achievements)
 <p align="center">
   Сделано с ❤️<br>&copy Курилов Андрей - 2026
 </p>
+
