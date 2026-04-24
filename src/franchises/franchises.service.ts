@@ -278,4 +278,86 @@ export class FranchisesService {
       data: { franchiseId: null },
     });
   }
+
+  async globalFranchiseSearch(filters: any, options: any) {
+    const { skip, take, page, limit } = createPaginationOptions(options);
+
+    // Get all public users first
+    const publicUsers = await this.prisma.user.findMany({
+      where: { isPrivate: false },
+      select: { id: true },
+    });
+
+    const publicUserIds = publicUsers.map((u) => u.id);
+
+    if (publicUserIds.length === 0) {
+      return createPaginatedResult([], 0, page, limit);
+    }
+
+    const where: any = {
+      userId: { in: publicUserIds },
+    };
+
+    if (filters.q) {
+      where.name = { contains: filters.q, mode: 'insensitive' };
+    }
+
+    const [franchises, total] = await Promise.all([
+      this.prisma.franchise.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          titles: true,
+        },
+        skip,
+        take,
+      }),
+      this.prisma.franchise.count({ where }),
+    ]);
+
+    const items = franchises.map((franchise) => {
+      let totalUnitsSum = 0;
+      let currentUnitsSum = 0;
+
+      franchise.titles.forEach((title) => {
+        if (title.totalUnits) {
+          totalUnitsSum += title.totalUnits;
+          currentUnitsSum += title.currentUnit ?? 0;
+        }
+      });
+
+      const franchiseProgress =
+        totalUnitsSum > 0
+          ? Math.round((currentUnitsSum / totalUnitsSum) * 100)
+          : 0;
+
+      const titlesCount = franchise.titles.reduce(
+        (acc, title) => {
+          acc[title.type] = (acc[title.type] || 0) + 1;
+          return acc;
+        },
+        {} as { [key: string]: number },
+      );
+
+      const statusCount = franchise.titles.reduce(
+        (acc, title) => {
+          acc[title.status] = (acc[title.status] || 0) + 1;
+          return acc;
+        },
+        {} as { [key: string]: number },
+      );
+
+      return {
+        ...franchise,
+        titles: undefined,
+        progressPercent: franchiseProgress,
+        stats: {
+          titlesCount,
+          statusCount,
+        },
+      };
+    });
+
+    return createPaginatedResult(items, total, page, limit);
+  }
 }

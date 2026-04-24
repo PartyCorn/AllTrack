@@ -27,8 +27,10 @@
 - 🎮 Франшизы и связывание тайтлов
 - 👥 Друзья и социальные функции
 - 🔔 Уведомления
+- 🔍 Поиск тайтлов, франшиз и пользователей с фильтрацией и сортировкой
 - 🏆 Система достижений и уровней профиля
 - 💬 Комментарии на профилях
+- ⚙ Интеграция с Кинопоиском
 
 ---
 
@@ -72,17 +74,13 @@ npm install
 
 #### Способ А: Локальный PostgreSQL
 
-1. Установите [PostgreSQL](https://www.postgresql.org/download/) (версия 14+) или [pgAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
-2. Создайте базу данных:
+1. Установите [PostgreSQL](https://www.postgresql.org/download/) (версия 14+) и [pgAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
+2. Создайте локальный сервер и базу данных
+3. Создайте таблицы:
    
    ```bash
-   createdb alltrack
-   ```
-3. Создайте пользователя (или используйте существующего):
-   
-   ```bash
-   psql -U postgres -c "CREATE USER postgres WITH PASSWORD 'password';"
-   psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE alltrack TO postgres;"
+   npx prisma generate
+   npx prisma db push
    ```
 4. Настройте подключение в `.env`:
    
@@ -108,6 +106,9 @@ docker run -d \
 ```bash
 # Генерация Prisma Client
 npx prisma generate
+
+# Создание таблиц в PostgreSQL
+npx prisma db push
 
 # Применение миграций Prisma
 npx prisma migrate dev --name init
@@ -173,13 +174,14 @@ src/
 | `PUT`             | `/comments/:profileId`           | Редактировать комментарий                     |
 | `DELETE`          | `/comments/:profileId`           | Удалить комментарий                                 |
 | **Франшизы**    |                                  |                                                                       |
-| `GET`             | `/titles/user/:userId`           | Франшизы пользователя                             |
-| `POST`            | `/titles`                        | Создать франшизу                                       |
-| `GET`             | `/titles/:id`                    | Франшиза по ID                                              |
-| `PUT`             | `/titles/:id`                    | Обновить франшизу                                     |
-| `DELETE`          | `/titles/:id`                    | Удалить франшизу                                       |
-| `POST`            | `/titles`                        | Прикрепить тайтл                                       |
-| `DELETE`          | `/titles/:id`                    | Открепить тайтл                                         |
+| `GET`             | `/franchises/user/:userId`           | Франшизы пользователя                             |
+| `GET`             | `/franchises/global/search`                 | Поиск франшиз среди пользователей                       |
+| `POST`            | `/franchises`                        | Создать франшизу                                       |
+| `GET`             | `/franchises/:id`                    | Франшиза по ID                                              |
+| `PUT`             | `/franchises/:id`                    | Обновить франшизу                                     |
+| `DELETE`          | `/franchises/:id`                    | Удалить франшизу                                       |
+| `POST`            | `/franchises/:id/titles/:titleId`                        | Прикрепить тайтл                                       |
+| `DELETE`          | `/franchises/:id/titles/:titleId`                    | Открепить тайтл                                         |
 | **Друзья**       |                                  |                                                                       |
 | `GET`             | `/friends`                       | Список друзей                                             |
 | `GET`             | `/friends/requests/incoming`     | Входящие заявки                                         |
@@ -197,6 +199,7 @@ src/
 | `GET`             | `/notifications/me/stream`       | Real-time SSE                                                         |
 | **Тайтлы**        |                                  |                                                                       |
 | `GET`             | `/titles/search`                 | Поиск тайтлов с фильтрами                       |
+| `GET`             | `/titles/global/search`                 | Поиск тайтлов среди пользователей                       |
 | `GET`             | `/titles/user/:userId`           | Тайтлы пользователя                                 |
 | `GET`             | `/titles/user/:userId/favorites` | Только избранные тайтлы пользователя |
 | `POST`            | `/titles`                        | Создать франшизу                                       |
@@ -204,6 +207,7 @@ src/
 | `PUT`             | `/titles/:id`                    | Обновить тайтл                                           |
 | `DELETE`          | `/titles/:id`                    | Удалить тайтл                                             |
 | **Пользователи**         |                                  |                                                                       |
+| `GET`             | `/users/search`                 | Поиск пользователей по никнейму                       |
 | `GET`             | `/users/me`                      | Профиль текущего пользователя              |
 | `PUT`             | `/users/me/edit`                 | Редактирование профиля                           |
 | `GET`             | `/users/:nickname`               | Публичный профиль                                     |
@@ -218,6 +222,7 @@ npm run start           # Запуск в production
 npm run start:dev       # Режим разработки (hot-reload)
 npm run start:debug     # Режим отладки
 npm run build           # Сборка проекта
+npm run prettier        # Автоматическое форматирование
 npm run lint            # Линтинг и исправление
 npm run test            # Unit тесты
 npm run test:cov        # Покрытие тестами

@@ -445,4 +445,58 @@ export class TitlesService {
 
     return createPaginatedResult(items, total, page, limit);
   }
+
+  async globalTitleSearch(filters: any, options: any) {
+    const { skip, take, page, limit } = createPaginationOptions(options);
+
+    // Get all public users first
+    const publicUsers = await this.prisma.user.findMany({
+      where: { isPrivate: false },
+      select: { id: true },
+    });
+
+    const publicUserIds = publicUsers.map((u) => u.id);
+
+    if (publicUserIds.length === 0) {
+      return createPaginatedResult([], 0, page, limit);
+    }
+
+    const where: any = {
+      userId: { in: publicUserIds },
+    };
+
+    if (filters.q) {
+      where.title = { contains: filters.q, mode: 'insensitive' };
+    }
+
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    const [titles, total] = await Promise.all([
+      this.prisma.userTitle.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          franchise: true,
+          user: { select: { id: true, nickname: true, avatarUrl: true } },
+        },
+        skip,
+        take,
+      }),
+      this.prisma.userTitle.count({ where }),
+    ]);
+
+    const items = titles.map((title) => ({
+      ...title,
+      dateStarted: title.dateStarted ? this.formatDate(title.dateStarted) : null,
+      dateFinished: title.dateFinished ? this.formatDate(title.dateFinished) : null,
+      progressPercent:
+        title.totalUnits && title.totalUnits > 0
+          ? Math.round(((title.currentUnit ?? 0) / title.totalUnits) * 100)
+          : 0,
+    }));
+
+    return createPaginatedResult(items, total, page, limit);
+  }
 }

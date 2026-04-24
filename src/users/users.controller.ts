@@ -32,6 +32,36 @@ export class UsersController {
     private readonly notificationEvents: NotificationEventsService,
   ) {}
 
+    @Get('search')
+    @UseGuards(OptionalJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Поиск пользователей по никнейму' })
+    @ApiQuery({ name: 'q', required: true, description: 'Поиск по никнейму' })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        example: 1,
+        description: 'Номер страницы',
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        example: 50,
+        description: 'Количество элементов на странице',
+    })
+    @ApiResponse({ status: 200, description: 'Список найденных пользователей' })
+    searchUsers(
+        @Query('q') q: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ) {
+        const options = {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        };
+        return this.usersService.searchUsers(q, options);
+    }
+
   /**
    * Получение профиля текущего пользователя
    */

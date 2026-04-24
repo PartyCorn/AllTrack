@@ -82,6 +82,40 @@ export class FranchisesController {
     return this.franchisesService.getUserFranchises(Number(userId), options);
   }
 
+  @Get('global/search')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Глобальный поиск франшиз по названию среди всех пользователей с открытым профилем' })
+  @ApiQuery({ name: 'q', required: true, description: 'Поиск по названию' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedFranchisesResponseDto,
+    description: 'Результаты глобального поиска франшиз',
+  })
+  globalSearchFranchises(
+    @Query('q') q: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const options = {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    };
+    return this.franchisesService.globalFranchiseSearch({ q }, options);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

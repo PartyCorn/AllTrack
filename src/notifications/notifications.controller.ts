@@ -67,7 +67,7 @@ export class NotificationsController {
     const userId = req.user.userId;
     return new Observable((subscriber) => {
       const listener = (notification: any) => {
-        subscriber.next({ data: notification } as MessageEvent);
+        subscriber.next({ data: JSON.stringify(notification) } as MessageEvent);
       };
 
       this.notificationEvents.getEmitter().on(`notification:${userId}`, listener);
@@ -76,8 +76,6 @@ export class NotificationsController {
       return () => {
         this.notificationEvents.getEmitter().off(`notification:${userId}`, listener);
       };
-    }).pipe(
-      map((event) => event as MessageEvent),
-    );
+    });
   }
 }

@@ -1,4 +1,3 @@
-// src/users/users.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -55,6 +54,41 @@ export class UsersService {
     }
 
     return this.mapSafeUser(user, requesterId);
+  }
+
+  async searchUsers(query: string, options: any = {}) {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+    const skip = (page - 1) * limit;
+
+    // Search users by nickname (partial match)
+    const where: any = {
+      nickname: { contains: query, mode: 'insensitive' as any },
+    };
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          nickname: true,
+          avatarUrl: true,
+          bio: true,
+          level: true,
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      items: users,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async updateUser(userId: number, dto: UpdateUserDto) {

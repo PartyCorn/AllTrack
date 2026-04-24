@@ -142,6 +142,51 @@ export class TitlesController {
     return this.titlesService.searchTitles(filters, options);
   }
 
+  @Get('global/search')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Глобальный поиск тайтлов по названию среди всех пользователей с открытым профилем' })
+  @ApiQuery({ name: 'q', required: true, description: 'Поиск по названию' })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['MOVIE', 'SERIES', 'ANIME', 'GAME', 'BOOK', 'OTHER'],
+    description: 'Фильтр по типу',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Номер страницы',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 50,
+    description: 'Количество элементов на странице',
+  })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedTitlesResponseDto,
+    description: 'Результаты глобального поиска',
+  })
+  globalSearchTitles(
+    @Query('q') q: string,
+    @Query('type') type?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const filters = {
+      q,
+      type,
+    };
+    const options = {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    };
+    return this.titlesService.globalTitleSearch(filters, options);
+  }
+
   @Get('user/:userId')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получить все тайтлы пользователя по ID' })
